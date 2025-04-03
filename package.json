@@ -1,7 +1,14 @@
 {
-  "name": "repositorio-nucleo",
+  "name": "@watendimento/watendimento",
   "version": "1.0.0",
   "main": "index.js",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/watendimento/watendimento.git"
+  },
   "scripts": {
     "test": "jest",
     "start": "node index.js"

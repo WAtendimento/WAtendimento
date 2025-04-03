@@ -1,58 +1,135 @@
-# WAtendimento - Package
+# 📦 Pacote NPM WAtendimento - Bot de Atendimento Integrado com IA
 
-Pacote de funções e arquivos básicos da implementação do bot WAtendimento.
+## 📌 Descrição
+Este pacote fornece um conjunto de funções e rotas essenciais para um bot de atendimento automatizado, integrado com inteligência artificial e múltiplos serviços. Ele inclui:
 
-## 📋 Requisitos
+- 📲 Comunicação com a API do WhatsApp (Wapi);
+- 🤖 Integração com um assistente de IA;
+- 🗄️ Conexão com o banco de dados Supabase;
+- 📊 Integração com o Google Sheets;
+- 🖼️ Processamento de imagens com a biblioteca Visio.
 
-Antes de iniciar, certifique-se de que você possui os seguintes requisitos instalados em seu ambiente:
-
-- [Node.js]
-- [Docker]
+---
 
 ## 🚀 Instalação
 
-1. Clone este repositório:
-
-   ```sh
-   git clone -b maxplural --single-branch https://github.com/dig-ie/bot-e-clientes.git
-
-   cd bot-e-clientes
-   ```
-
-2. Instale as dependências:
-
-   ```sh
-   npm install
-   ```
-
-3. Configure as variáveis de ambiente (por enquanto não será necessário).
-
-## ⚙️ Configuração
-(configurações específicas)
-
-## 🛠️ Uso
-
-Para rodar:
+Na pasta raiz do projeto crie um arquivo .npmrc e adicione a configuração do pacote, para isso pode utilizar o comando:
 
 ```sh
-npm start
+echo "@watendimento:registry=https://npm.pkg.github.com/" > .npmrc
 ```
 
-## 📡 Endpoints
+Em seguida, rode o comando abaixo para instalar o pacote:
 
-### Documentação:
+```sh
+npm install @watendimento/watendimento
+```
 
-- `POST webhook/receberWebhook` - Recebe o webhook ao chegar mensagem no whatsapp configurado e chama a função de integração do bot ao fluxo do cliente (integraBotComFuncoesDoCiente)
-- `POST webhook/forcarEnvio` - Força envio de mensagem (manualmente)
-- `POST webhook/atualizarBot` - Endpoint para receber o disparo webhook de atualização do bot (o disparo de webhook é configurado no github > bot nucleo > config > webhooks)
-- `GET /node-version` - Consulta a versão do node. útil para consultar a versão node do ambiente cloud de implantação.
+---
 
-# Fluxo do endpoint/função `atualizarBot`: 
-https://github.com/dig-ie/bot-e-clientes/blob/maxplural/atualizaBot.md
+## 📚 Uso
 
-## 📜 Licença
+### 🔧 Configuração no Projeto
 
-## 👥 Autores
+Para utilizar as rotas e serviços do pacote, importe-o no seu projeto:
 
-- **Maria** – [@mariacireno] (https://github.com/mariacireno
-- **Lívia** – [@liviamfurtado] (https://github.com/liviamfurtado)
+```javascript
+const express = require("express");
+const pacoteAtendimento = require("@watendimento/rotas"); // Pacote NPM com as rotas comuns
+const minhasRotas = require("./rotas"); // Arquivo de rotas específicas do projeto
+
+const app = express();
+
+app.use(express.json({ limit: "10MB" }));
+
+// Rotas do pacote (comuns)
+app.use("/webhook", pacoteAtendimento.rotas);
+
+// Rotas específicas do projeto
+app.use("/meu-projeto", minhasRotas);
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
+```
+
+No arquivo `rotas.js` do seu projeto, você pode definir rotas específicas, sem interferir nas rotas do pacote:
+
+```javascript
+const express = require("express");
+const { minhaFuncaoEspecifica } = require("./controladores/minhasFuncoes");
+
+const router = express.Router();
+
+router.post("/minha-rota", minhaFuncaoEspecifica);
+
+module.exports = router;
+```
+
+### 📌 Exemplo de Uso das Funções
+
+#### 🔹 Processar Mensagem do WhatsApp
+```javascript
+const { processarMensagemJson } = require("nome-do-pacote");
+
+const mensagemRecebida = { texto: "Olá, quero ajuda!" };
+const resposta = await processarMensagemJson(mensagemRecebida);
+console.log(resposta);
+```
+
+#### 🔹 Integração com IA
+```javascript
+const { assistenteIA } = require("nome-do-pacote");
+
+const pergunta = "Qual é a previsão do tempo para hoje?";
+const respostaIA = await assistenteIA(pergunta);
+console.log(respostaIA);
+```
+
+#### 🔹 Consultar o Banco de Dados
+```javascript
+const { consultarBanco } = require("nome-do-pacote");
+
+const usuarios = await consultarBanco("usuarios");
+console.log(usuarios);
+```
+
+#### 🔹 Integração com Google Sheets
+```javascript
+const { atualizarPlanilha } = require("nome-do-pacote");
+
+await atualizarPlanilha("PlanilhaID", [["Nome", "Email"]]);
+console.log("Dados atualizados com sucesso!");
+```
+
+#### 🔹 Processamento de Imagens com Visio
+```javascript
+const { processarImagem } = require("nome-do-pacote");
+
+const resultado = await processarImagem("imagem.jpg");
+console.log(resultado);
+```
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+- Node.js
+- Express.js
+- Supabase
+- Google Sheets API
+- API do WhatsApp (Wapi)
+- Assistente de IA
+- Biblioteca de processamento de imagens Visio
+
+---
+
+## 📄 Licença
+Este projeto é proprietário e não pode ser usado, modificado ou distribuído sem autorização.
+
+---
+
+## 📬 Contato
+Caso tenha dúvidas ou sugestões, entre em contato através do email: `maria@leev.cc`.
+
