@@ -1,0 +1,28 @@
+{
+  "name": "repositorio-nucleo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@api/cvcrm": "file:MaxPlural/testes/.api/apis/cvcrm",
+    "@google-cloud/vision": "^4.3.2",
+    "@supabase/supabase-js": "^2.47.12",
+    "axios": "^1.7.9",
+    "express": "^4.21.2",
+    "fs": "^0.0.1-security",
+    "google-auth-library": "^9.15.1",
+    "google-spreadsheet": "^4.1.4",
+    "googleapis": "^144.0.0",
+    "simple-git": "^3.27.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
