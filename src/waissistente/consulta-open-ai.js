@@ -126,4 +126,4 @@ async function consultaOpenAI({ data }) {
     }
 }
 
-module.exports = { consultaOpenAI };
+module.exports = consultaOpenAI;

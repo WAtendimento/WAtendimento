@@ -1,47 +1,32 @@
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-const { JWT } = require('google-auth-library');
-const credenciais = require('../../credenciais/sheets');
-const arquivo = require('../../dados/sheets/arquivo_sheets.json');
+const { autenticarDocs, getDocs } = require('../../src/sheets/instanciar-sheets');
+const credentials = require('../../credenciais/sheets.json');
+const sheetIds = require('../../dados/sheets/arquivo_sheets.json');
 
-// Crie o cliente JWT para autenticação
-const auth = new JWT({
-    key: credenciais.private_key,
-    email: credenciais.client_email,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-})
+const main = async () => {
+    console.log('Iniciando teste de autenticação das planilhas...');
 
-console.log('Inicializando documentos...');
+    const docs = await autenticarDocs({ credentials, sheetIds });
 
-auth.authorize((err, tokens) => {
-    if (err) {
-        console.error('Erro na autenticação:', err);
+    if (!docs) {
+        console.error('Erro na autenticação.');
         return;
     }
 
-    //console.log('Autenticação realizada com sucesso!');
+    console.log('Docs autenticados. Tentando carregar info...');
 
-    const doc_cadastros = new GoogleSpreadsheet(arquivo.id_cadastros, auth);
-    const doc_revendas = new GoogleSpreadsheet(arquivo.id_login, auth);
-    const doc_moura = new GoogleSpreadsheet(arquivo.id_sheet_i_moura, auth);
-    const doc_report = new GoogleSpreadsheet(arquivo.id_sheet_report, auth);
+    try {
+        await getDocs(docs);
+        console.log('Planilhas carregadas com sucesso!');
+        
+        console.log('Títulos das planilhas:');
+        console.log('Cadastros:', docs.cadastros.title);
+        console.log('Login:', docs.login.title);
+        console.log('Moura:', docs.moura.title);
+        console.log('Report:', docs.report.title);
 
-    console.log("PLanilhas criadas com sucesso");
-
-    const getDoc = async () => {
-
-        try {
-            await doc_cadastros.loadInfo();
-            await doc_revendas.loadInfo();
-            await doc_moura.loadInfo();
-            await doc_report.loadInfo();
-
-            console.log(doc_cadastros.title, doc_revendas.title, doc_moura.title, doc_report.title);    
-
-        } catch (err) {
-            console.error('Erro ao acessar a planilha:', err);
-        }
+    } catch (err) {
+        console.error('Erro ao acessar as planilhas:', err);
     }
+};
 
-    getDoc();
-    
- });
+main();
