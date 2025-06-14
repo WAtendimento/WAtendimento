@@ -48,7 +48,7 @@ async function criaThreadeEnviaMensagem({ data }) {
 
   const mensagem = data.mensagem;
   const nome = data.nome;
-  const dadosContato = data.dadosContato;
+  const dadosFornecidos = data.dadosFornecidos;
   const telefoneContato = data.telefoneContato;
   const tabela = supabaseCredentials.table_data.table_contatos;
   const logger = criaLogger(telefoneContato);
@@ -106,7 +106,7 @@ async function criaThreadeEnviaMensagem({ data }) {
 
     const messageBody = {
       role: "user",
-      content: `mensagem: ${mensagem} nomePessoa: ${nome} dadosContato: ${dadosContato}`,
+      content: `mensagem: ${mensagem} nomePessoa: ${nome} dadosFornecidos: ${dadosFornecidos}`,
     };
 
     const maxRetries = 5;

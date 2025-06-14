@@ -1,8 +1,8 @@
 const express = require("express");
-const criarRotas = require("./rotas/rotas"); // Importa as rotas do pacote
+const criarRotas = require("../WAtendimento/rotas/rotas"); // Importa as rotas do pacote
 
 const app = express();
-app.use(express.json({ limit: "10MB" }));
+app.use(express.json({ limit: "20MB" }));
 
 // Função específica do projeto (pode ser diferente para cada projeto)
 const integraBot = async (msg, nome, origem, destino) => {

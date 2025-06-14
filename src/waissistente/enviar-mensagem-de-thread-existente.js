@@ -9,7 +9,7 @@ const { credenciaisOpenAi } = require("../../credenciais/open-ai");
  * @param {string} data.thread_id - ID do thread onde a mensagem será enviada.
  * @param {string} data.user_message - Conteúdo da mensagem do usuário.
  * @param {string} data.nome - Nome da pessoa associada à mensagem.
- * @param {string} data.dadosContato - Dados do contato.
+ * @param {string} data.dadosFornecidos - Dados do contato.
  * @param {string} data.telefoneContato - Telefone do contato para fins de log.
  *
  * @returns {Promise<Object>} Retorna um objeto com o resultado da operação.
@@ -19,7 +19,7 @@ async function enviaMensagemThreadExistente({ data }) {
   const userMessage = data.user_message;
   const nome = data.nome;
   const telefoneContato = data.telefoneContato;
-  const dadosContato = data.dadosContato;
+  const dadosFornecidos = data.dadosFornecidos;
 
   const apiKey = credenciaisOpenAi.headers.apiKey;
   const assistantId = credenciaisOpenAi.headers.assistantId;
@@ -29,7 +29,7 @@ async function enviaMensagemThreadExistente({ data }) {
   }
 
   // Construindo a mensagem no formato esperado
-  const formattedMessage = `mensagem: ${userMessage} nomePessoa: ${nome} dadosContato: ${dadosContato}`;
+  const formattedMessage = `mensagem: ${userMessage} nomePessoa: ${nome} dadosFornecidos: ${dadosFornecidos}`;
 
   const messageUrl = `https://api.openai.com/v1/threads/${threadId}/messages`;
   const runUrl = `https://api.openai.com/v1/threads/${threadId}/runs`;
@@ -86,7 +86,7 @@ async function enviaMensagemThreadExistente({ data }) {
           runId: runResponse.data.id,
         };
       } catch (error) {
-        console.error(`Erro na tentativa ${attempts}:`, error.message);
+        console.error(`[enviarMensagemThreadExistente] Erro na tentativa ${attempts}:`, error.message);
         logger.error(">>> Erro na tentativa", attempts);
 
         if (attempts >= maxRetries) {

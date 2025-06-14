@@ -158,7 +158,7 @@ const buscarCelulaPorValor = async (aba, colunaReferencia, colunaRetorno, valorB
       }
     }
 
-    console.log(`Valor ${valorBuscado} não encontrado em nenhuma aba da planilha ` + aba.title);
+    console.log(`Valor ${valorBuscado} não encontrado na aba ` + aba.title);
     return null; // Retorna null se não encontrar o valor buscado
   } catch (err) {
     console.error('Erro ao buscar coluna de retorno:', err);

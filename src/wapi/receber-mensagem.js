@@ -12,25 +12,6 @@ const credenciaisSupabase = require('../../credenciais/supabase');
  * @returns {Object|null} - Dados extraídos da mensagem ou null em caso de erro.
  */
 
-// // Função para verificar e retornar a primeira mensagem não nula
-// function obterMensagemValida(dados) {
-//   // console.log(
-//   //   "Entrando em obterMensagemValida com dados:",
-//   //   JSON.stringify(dados, null, 2)
-//   // );
-//   if (!dados) {
-//     logger.add(">>> Dados nulos ou indefinidos em obterMensagemValida.");
-//     return null;
-//   }
-
-//   const { mensagem, mensagemOp1, mensagemOp2, mensagemOp3 } = dados;
-//   const mensagemValida =
-//     mensagem || mensagemOp1 || mensagemOp2 || mensagemOp3 || null;
-//   if (mensagemValida != null) {
-//   }
-
-//   return mensagemValida;
-// }
 
 async function processarMensagemJson(json, integraBot) {
   try {
@@ -75,6 +56,8 @@ async function processarMensagemJson(json, integraBot) {
 
     // Normalizar o número de telefone se estiver presente
     let telefoneNormalizado = null;
+
+     //  TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
 
     if (dadosExtraidos.contactCardNumber) {
       telefoneNormalizado = normalizeTelefone(dadosExtraidos.contactCardNumber);
@@ -141,6 +124,7 @@ async function processarMensagemJson(json, integraBot) {
         console.log('>>> Texto detectado na imagem: ', textoUnico);
 
         if (textoUnico) {
+          // TO-DO: deixar essas credenciais parametrizaveis
           mensagemCorreta = await consultaOpenAI({
             data: {
               OPENAI_API_KEY:
@@ -178,6 +162,8 @@ async function processarMensagemJson(json, integraBot) {
     }
 
     // TRATAMENTO DE MENSAGENS DE INATIVAÇÃO DA IA
+    // TO - DO Adicionar no banco ou em variaveis passadas como parametro
+    // as palavras-chave que encerram o contato.
     if (dadosExtraidos.fromMe === true) {
       if (mensagemCorreta && (mensagemCorreta.includes(':)') || mensagemCorreta.includes('(:'))) {
         console.log('Mensagem de assunção de atendimento recebida.');

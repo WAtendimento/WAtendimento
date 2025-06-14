@@ -15,7 +15,7 @@ const acumulaMensagens = require('../utils/acumular-mensagens');
 
 /**
  * @typedef {Object} VerificaEEnviaMensagemParams
- * @property {string} dadosContato - Dados do cliente.
+ * @property {string} dadosFornecidos - Dados do cliente.
  * @property {string} nomeContato - Nome do contato do cliente.
  * @property {boolean} contatoEncerrado - Indica se o contato foi encerrado.
  * @property {string|null} openai_thread_id - ID do thread associado ao OpenAI, se aplicável.
@@ -40,7 +40,7 @@ const acumulaMensagens = require('../utils/acumular-mensagens');
  */
 
 async function verificaEEnviaMensagem({
-  dadosContato,
+  dadosFornecidos,
   nomeContato,
   contatoEncerrado,
   openai_thread_id,
@@ -48,10 +48,12 @@ async function verificaEEnviaMensagem({
   telefoneContato,
   filtrosAdicionaisContato,
   camposConflito,
+  assistantId,
+  nomeThread
 }) {
   const logger = criaLogger(telefoneContato);
   const tabela = supabaseCredentials.table_data.table_contatos;
-  const mensagensAcumuladas = acumulaMensagens('telefoneContato');
+  const mensagensAcumuladas = acumulaMensagens(telefoneContato);
   const telefone = { telefone: ['=', telefoneContato] };
   const camposSelecionados = ['interação_em_andamento'];
 
@@ -60,17 +62,26 @@ async function verificaEEnviaMensagem({
     telefone: telefoneContato,
   };
 
-  logger.add(`mensagem: ${mensagem} nomePessoa: ${nomeContato} dadosContato: ${dadosContato}`);
+  // console.log('mensagem', mensagem);
+  // console.log('nomeContato', nomeContato);
+  // console.log('dadosFornecidos', dadosFornecidos);
+  // console.log('telefoneContato', telefoneContato);
+
+  logger.add(`mensagem: ${mensagem} nomePessoa: ${nomeContato} dadosFornecidos: ${dadosFornecidos}`);
   const filtrosFormatados = Object.entries(filtrosComTelefone).reduce((acc, [chave, valor]) => {
     acc[chave] = ['=', valor];
     return acc;
   }, {});
 
-  filtros = Object.assign(telefone, filtrosFormatados);
+  let filtros = Object.assign(telefone, filtrosFormatados);
+
+  // console.log('filtros', filtros);
 
   try {
     if (!contatoEncerrado) {
       const dadosOpenAIContato = await buscarNoSupabase(tabela, filtros, camposSelecionados, true);
+
+      // console.log('dadosOpenAIContato', dadosOpenAIContato);
 
       if (!dadosOpenAIContato[0].interação_em_andamento) {
         await atualizarNoSupabase(
@@ -84,18 +95,20 @@ async function verificaEEnviaMensagem({
         logger.add(`Criando Buffer com 1ª mensagem: ${mensagem}`);
         mensagensAcumuladas.add(mensagem);
         logger.add('Delay de 20 segundos');
-        await new Promise((resolve) => setTimeout(resolve, 20000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
 
         mensagem = mensagensAcumuladas.finish();
-
+        
         const resultado = await controleDeThreads({
-          dadosContato,
+          dadosFornecidos,
           nomeContato,
           openai_thread_id,
           mensagem,
           telefoneContato,
           filtrosAdicionaisContato,
           camposConflito,
+          assistantId,
+          nomeThread
         });
 
         logger.add('Interacao_em_andamento setado para FALSE depois de concluir delay');
@@ -109,7 +122,12 @@ async function verificaEEnviaMensagem({
         );
 
         //console.log(logger.finish());
-        return resultado;
+      const retorno = { ...resultado };
+
+      if (nomeThread === 'openai_thread_id') {
+        retorno.mensagensBufferizadas = mensagem; // <- usa a string já finalizada
+      }
+      return retorno;
       } else {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         logger.add(`Interação em andamento. Adicionando mensagem ao Buffer: ${mensagem}`);
@@ -141,13 +159,15 @@ async function verificaEEnviaMensagem({
 }
 
 async function controleDeThreads({
-  dadosContato,
+  dadosFornecidos,
   nomeContato,
   openai_thread_id,
   mensagem,
   telefoneContato,
   filtrosAdicionaisContato,
   camposConflito,
+  assistantId,
+  nomeThread
 }) {
   const logger = criaLogger(telefoneContato);
   try {
@@ -162,14 +182,16 @@ async function controleDeThreads({
           data: {
             mensagem: mensagem,
             nome: nomeContato,
-            dadosContato: dadosContato,
+            dadosFornecidos: dadosFornecidos,
             telefoneContato: telefoneContato,
             filtrosAdicionais: filtrosAdicionaisContato,
             camposConflito: camposConflito,
+            assistantId: assistantId,
+            nomeThread: nomeThread,
           },
         });
 
-        logger.add('>>> Mensagem enviada com sucesso: ');
+        logger.add('>>> Mensagem enviada com sucesso.');
 
         threadId = mensagemRecebidaPrimeiraThread.thread_id;
         lastMessageId = mensagemRecebidaPrimeiraThread.value?.messageId;
@@ -192,9 +214,10 @@ async function controleDeThreads({
             thread_id: openai_thread_id,
             user_message: mensagem,
             nome: nomeContato,
-            dadosContato: dadosContato,
+            dadosFornecidos: dadosFornecidos,
             telefoneContato,
             filtrosAdicionaisContato,
+            assistantId,
           },
         });
 
@@ -233,6 +256,7 @@ async function controleDeThreads({
       result.resumo = result.resumo || '';
 
       logger.add('JSON Resposta Bot:', result);
+      // console.log('JSON Resposta Bot:', result);
 
       const respostaBot = result.respostaBot;
       if (respostaBot) {

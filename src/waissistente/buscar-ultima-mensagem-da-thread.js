@@ -287,17 +287,3 @@ const processNewMessages = async ({
 };
 
 module.exports = { buscaUltimaMensagemThread };
-
-// (async () => {
-//   const data = {
-//     threadId: "thread_AZFKULzHaOs7FmF3CiPOcY8U",
-//     lastMessageId: null,
-//     apiKey: credenciaisOpenAi.headers.apiKey,
-//     telefoneContato: "558196948615",
-//     filtrosAdicionaisUnicos: { id_chip: 9 },
-//     camposConflito: ["telefone", "id_chip"],
-//   };
-
-//   const response = await buscaUltimaMensagemThread({ data });
-//   console.log(response);
-// })();
