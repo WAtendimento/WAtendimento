@@ -1,4 +1,5 @@
 const { formatarTelefone } = require('../utils/formatar-telefone');
+const gerarVariacoesDeTelefone = require('../../WAtendimento/src/utilidades/gerar_variacoes_telefone');
 
 // Mapeamento dos meses
 const mesesMap = {
@@ -45,13 +46,16 @@ const extrairMesesNumericos = (dados) => {
 // Função que busca aba por nome
 const buscarAbaPorNome = async (doc, nomeAba) => {
   try {
-    if (!doc) {
+    if (!doc) { 
       console.error('Erro: a planilha ' + (doc ? doc.title : 'não possui título') + ' não foi carregada corretamente.');
       return null;
     }
 
     if (doc) {
       for (const aba of doc.sheetsByIndex) {
+        // console.log('Aba:', aba.title);
+        // console.log('Nome da aba:', nomeAba);
+        // Verifica se o nome da aba corresponde ao nome buscado
         if (aba.title === nomeAba) {
           return aba; // Retorna a aba se o nome corresponder
         }
@@ -67,27 +71,29 @@ const buscarAbaPorNome = async (doc, nomeAba) => {
   }
 };
 
-let inicioCampanha = '';
-let mesSetup = '';
+
 // Função que procura a data de setup de um contato por um valor
 // TO - DO: Mudar essa funcao para receber um doc (sheet) e nao uma aba e
 // dentro dela buscar a primeira aba
 const buscarDataSetupPorValor = async (aba, colunaReferencia, valor) => {
   try {
-    let mesSetup = await buscarCelulaPorValor(aba, colunaReferencia, 'MÊS DE SETUP', valor);
-    console.log('Mês de setup:', mesSetup);
+    let inicioCampanha = '';
+    let mesSetup = '';
+
+    mesSetup = await buscarCelulaPorValor(aba, colunaReferencia, 'MÊS DE SETUP', valor);
+    //console.log('Mês de setup:', mesSetup);
     if (!mesSetup) return null;
     inicioCampanha = await buscarCelulaPorValor(aba, colunaReferencia, 'INICIO DE CAMPANHA', valor);
-    console.log('Inicio campanha:', inicioCampanha);
+    // console.log('Inicio campanha:', inicioCampanha);
 
     // TRATAR MES E ANO
     mesSetup = extrairMesesNumericos([mesSetup])[0];
     // console.log('Mês de setup numérico:', mesSetup);
 
     anoSetup = inicioCampanha.split('/')[1];
-    console.log('anoSetup', anoSetup);
+    //console.log('anoSetup', anoSetup);
     let mesAnoInicioCampanha = inicioCampanha.split('/')[0].substring(0, 2); // Obtém os 2 primeiros dígitos do mês
-    console.log('mesAnoInicioCampanha', mesAnoInicioCampanha);
+    //console.log('mesAnoInicioCampanha', mesAnoInicioCampanha);
     // console.log('Ano de setup numérico:', anoSetup);
     let nomeAba1 = '';
     let nomeAba2 = '';
@@ -117,45 +123,67 @@ const buscarCelulaPorValor = async (aba, colunaReferencia, colunaRetorno, valorB
     let indiceReferencia = headers.indexOf(colunaReferencia);
     let indiceRetorno = headers.indexOf(colunaRetorno);
 
-    // console.log('Coluna de referência:', colunaReferencia);
-    // console.log('Coluna de retorno:', colunaRetorno);
+    //  console.log('Coluna de referência:', colunaReferencia);
+    //  console.log('Coluna de retorno:', colunaRetorno);
 
-    // console.log('Indice de referencia:', indiceReferencia);
-    // console.log('Indice de retorno:', indiceRetorno);
+    //  console.log('Indice de referencia:', indiceReferencia);
+    //  console.log('Indice de retorno:', indiceRetorno);
     // Verifica se as colunas necessárias existem
     if (indiceReferencia === -1) {
-      console.log(`Coluna referencia ${colunaReferencia} não existe na aba "${aba.title}".`);
+      // console.log(`+++ Coluna referencia ${colunaReferencia} não existe na aba "${aba.title}".`);
       return null;
     }
     if (indiceRetorno === -1) {
-      console.log(`Coluna retorno ${colunaRetorno} não existe na aba "${aba.title}".`);
+      // console.log(`+++ Coluna retorno ${colunaRetorno} não existe na aba "${aba.title}".`);
       return null;
     }
 
     // Obtém as linhas da aba
     const rows = await aba.getRows();
 
+    // console.log('+++ Quantidade de linhas:', rows.length);
+
     // Percorre todas as células da coluna de referência
     for (let i = 0; i < rows.length; i++) {
       let valorCelula = rows[i]._rawData[indiceReferencia];
-      //console.log(`Valor da célula na coluna ${i}: `, valorCelula);
+      // console.log(`+++ Valor da célula na coluna ${i}: `, valorCelula);
 
       // Se a coluna for identificador (ID, CNPJ ou telefone), normaliza removendo caracteres especiais
       if (['ID', 'CNPJ', 'DIRECIONAMENTO'].includes(colunaReferencia.toUpperCase())) {
         valorCelula = limparTexto(valorCelula);
         valorBuscado = limparTexto(valorBuscado);
       }
+      
       // Caso a coluna seja de telefones, o valor deve ser tratado
-      if (colunaReferencia.toUpperCase().includes('PHONE') || colunaReferencia.toUpperCase().includes('TELEFONE')) {
+      if (colunaReferencia.toUpperCase().includes('PHONE') || colunaReferencia.toUpperCase().includes('TELEFONE')
+      || colunaReferencia.toUpperCase().includes('WHATSAPP')) {
+        // console.log(`+++ Valor da célula na linha ${i}: `, valorCelula);
         valorCelula = formatarTelefone(valorCelula);
-        //console.log(`Valor formatado da célula na coluna ${i}: `, valorCelula);
+        if(valorCelula) {
+          // console.log(`+++ Valor formatado da célula na linha ${i}: `, valorCelula);
+          const variacoesCelula = gerarVariacoesDeTelefone(valorCelula);
+          // console.log(`+++ Variações de telefone da célula na linha ${i}: `, variacoesCelula);
+          const variacoesBusca = gerarVariacoesDeTelefone(valorBuscado);
+          // console.log(`+++ Variações de telefone da busca na linha ${i}: `, variacoesBusca);
+
+          const encontrou = variacoesCelula.some(vc => 
+            variacoesBusca.some(vb => vc.toLowerCase() === vb.toLowerCase())
+          );
+
+          if (encontrou) {
+            console.log(`+++ [telefone] Valor ${valorBuscado} encontrado na linha ${i} da aba "${aba.title}".`);
+            return rows[i]._rawData[indiceRetorno];
+          }
+        }
+      }  else {
+        // Verifica se o valor da célula é igual ao valor procurado
+        if (valorCelula && valorCelula.toLowerCase() === valorBuscado.toLowerCase()) {
+          console.log(`+++ Valor ${valorBuscado} encontrado na linha ${i} da aba "${aba.title}".`);
+          return rows[i]._rawData[indiceRetorno];
+        }
       }
 
-      // Verifica se o valor da célula é igual ao valor procurado
-      if (valorCelula && valorCelula.toLowerCase() === valorBuscado.toLowerCase()) {
-        //console.log(`Valor ${valorBuscado} encontrado na coluna ${i} da aba "${aba.title}".`);
-        return rows[i]._rawData[indiceRetorno];
-      }
+     
     }
 
     console.log(`Valor ${valorBuscado} não encontrado na aba ` + aba.title);
