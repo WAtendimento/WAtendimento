@@ -6,7 +6,7 @@ const { pesquisarContatosEGerarMensagens } = require('../src/wapi/processa-conta
  * @param {Object} req - Objeto de requisição.
  * @param {Object} res - Objeto de resposta.
  */
-async function receberWebhook(req, res, integraBot) {
+async function receberWebhook(req, res, credenciaisOpenAi, integraBot) {
   try {
     // Log do payload para debug
     // console.log("Payload recebido:", JSON.stringify(req.body, null, 2));.
@@ -16,7 +16,7 @@ async function receberWebhook(req, res, integraBot) {
       const mensagem = req.body ?? req.body | req.body.body;
 
       // Processa a mensagem usando o serviço
-      const dadosProcessados = await processarMensagemJson(mensagem, integraBot);
+      const dadosProcessados = await processarMensagemJson(mensagem, credenciaisOpenAi, integraBot);
 
       if (dadosProcessados) {
         //console.log("Mensagem processada com sucesso:", dadosProcessados);
@@ -44,7 +44,7 @@ async function receberWebhook(req, res, integraBot) {
  * @param {Object} req - Objeto de requisição.
  * @param {Object} res - Objeto de resposta.
  */
-async function forcarEnvio(req, res, integraBot) {
+async function forcarEnvio(req, res, credenciaisOpenAi, integraBot) {
   try {
     const { mensagem, nome, telefoneOrigem, telefoneDestino } = req.body;
 
@@ -57,7 +57,7 @@ async function forcarEnvio(req, res, integraBot) {
     }
 
     // Processar o envio
-    await integraBot(mensagem, nome, telefoneOrigem, telefoneDestino);
+    await integraBot(mensagem, nome, telefoneOrigem, telefoneDestino, credenciaisOpenAi);
 
     // Retornar sucesso
     return res.status(200).json({
@@ -80,7 +80,7 @@ async function forcarEnvio(req, res, integraBot) {
  * @param {Object} req - Objeto de requisição.
  * @param {Object} res - Objeto de resposta.
  */
-async function receberWebhookEnvioEmMassa(req, res) {
+async function receberWebhookEnvioEmMassa(req, res, credenciaisWAPI) {
   try {
     // Log do payload para debug
     //console.log("Payload recebido:", JSON.stringify(req.body, null, 2));
@@ -90,7 +90,7 @@ async function receberWebhookEnvioEmMassa(req, res) {
       // Valida os tipos dos parâmetros recebidos
       if (typeof quantidade === 'number') {
         // Chama o serviço com os parâmetros recebidos
-        const resultado = await pesquisarContatosEGerarMensagens(mensagem, quantidade);
+        const resultado = await pesquisarContatosEGerarMensagens(mensagem, quantidade, credenciaisWAPI);
 
         if (resultado) {
           return res.status(200).json({

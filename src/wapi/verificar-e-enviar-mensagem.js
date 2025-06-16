@@ -1,7 +1,6 @@
 const { criaThreadeEnviaMensagem } = require('../waissistente/criar-thread-e-enviar-mensagem');
 const { enviaMensagemThreadExistente } = require('../waissistente/enviar-mensagem-de-thread-existente');
 const { buscaUltimaMensagemThread } = require('../waissistente/buscar-ultima-mensagem-da-thread');
-const { credenciaisOpenAi } = require('../../credenciais/open-ai');
 const criaLogger = require('../utils/logger');
 const buscarNoSupabase = require('../supabase/buscar-no-supabase');
 const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
@@ -49,7 +48,8 @@ async function verificaEEnviaMensagem({
   filtrosAdicionaisContato,
   camposConflito,
   assistantId,
-  nomeThread
+  nomeThread,
+  credenciaisOpenAi,
 }) {
   const logger = criaLogger(telefoneContato);
   const tabela = supabaseCredentials.table_data.table_contatos;

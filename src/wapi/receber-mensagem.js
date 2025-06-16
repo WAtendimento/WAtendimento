@@ -4,7 +4,6 @@ const criaLogger = require('../utils/logger');
 const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
 const { imagemParaTexto } = require('../vision/detector-texto');
 const { consultaOpenAI } = require('../waissistente/consulta-open-ai');
-const { credenciaisOpenAi } = require('../../credenciais/open-ai');
 const credenciaisSupabase = require('../../credenciais/supabase');
 
 /**
@@ -14,7 +13,7 @@ const credenciaisSupabase = require('../../credenciais/supabase');
  */
 
 
-async function processarMensagemJson(json, integraBot) {
+async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
   try {
     console.log('Mensagem Recebida... Iniciando processamento. Aguarde...');
     // logger.add(
@@ -209,7 +208,8 @@ async function processarMensagemJson(json, integraBot) {
         mensagemFormatada,
         dadosExtraidos.pushName,
         dadosExtraidos.idRemoto,
-        dadosExtraidos.connectedPhone
+        dadosExtraidos.connectedPhone,
+        credenciaisOpenAi
       );
 
       // console.log("Resposta da OpenAI processada com sucesso:", result);

@@ -1,20 +1,16 @@
 // Importações e configuração
 const { enviaMensagensEmMassa } = require('../wapi/enviar-mensagens-em-massa');
 const enviarMensagemAPI = require('../wapi/enviar-mensagem-unica');
-const controleExecucao = require('../wapi/controlador-estado-execucao');
 const criaLogger = require('../utils/logger');
 const supabase = require('../supabase/criar-cliente-supabase');
 const buscarNoSupabase = require('../supabase/buscar-no-supabase');
 const supabaseCredentials = require('../../credenciais/supabase');
-const credenciaisWAPI = require('../../credenciais/wapi');
 
-
-// Configurando o Supabase client
-//const supabase = createClient(supabaseCredentials.table_data.url, supabaseCredentials.table_data.token);
 
 const logger = criaLogger('mensagemEmMassa');
 
-async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults = Infinity, nomeCredor = '', naoEnviarPara = '') {
+async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, credenciaisWAPI, controleExecucao
+) {
   console.log('##ENVIO EM MASSA: INICIANDO FUNÇÃO DE ENVIO EM MASSA');
 
   if (!controleExecucao.getEstado()) {
@@ -37,7 +33,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults = Infin
     let totalCarregados = 0;
 
     //Preparando dados para consulta da tabela dos Chips
-    const tabela = 'maxplural_chips';
+    const tabela = supabaseCredentials.table_data.table_chips;
     const filtros = {
       id_chip: ['>=', 0],
     };
