@@ -121,13 +121,13 @@ async function verificaEEnviaMensagem({
           false
         );
 
-        //console.log(logger.finish());
-      const retorno = { ...resultado };
+        const retorno = { ...resultado };
 
-      if (nomeThread === 'openai_thread_id') {
-        retorno.mensagensBufferizadas = mensagem; // <- usa a string já finalizada
-      }
-      return retorno;
+        if (nomeThread === 'openai_thread_id') {
+          retorno.mensagensBufferizadas = mensagem; // <- usa a string já finalizada
+        }
+        
+        return retorno;
       } else {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         logger.add(`Interação em andamento. Adicionando mensagem ao Buffer: ${mensagem}`);
@@ -186,6 +186,7 @@ async function controleDeThreads({
             telefoneContato: telefoneContato,
             filtrosAdicionais: filtrosAdicionaisContato,
             camposConflito: camposConflito,
+            apiKey: supabaseCredentials.headers.apiKey,
             assistantId: assistantId,
             nomeThread: nomeThread,
           },
@@ -215,9 +216,10 @@ async function controleDeThreads({
             user_message: mensagem,
             nome: nomeContato,
             dadosFornecidos: dadosFornecidos,
-            telefoneContato,
-            filtrosAdicionaisContato,
-            assistantId,
+            telefoneContato: telefoneContato,
+            filtrosAdicionais: filtrosAdicionaisContato,
+            apiKey: credenciaisOpenAi.headers.apiKey,
+            assistantId: assistantId,
           },
         });
 
@@ -238,10 +240,10 @@ async function controleDeThreads({
 
     try {
       const data = {
-        threadId,
-        lastMessageId,
+        threadId: threadId,
+        lastMessageId: lastMessageId,
         apiKey: credenciaisOpenAi.headers.apiKey,
-        table: credenciaisOpenAi.headers.table,
+        tabela: supabaseCredentials.table_data.table_contatos,
         telefoneContato: telefoneContato,
         filtrosAdicionaisUnicos: filtrosAdicionaisContato,
         camposConflito: camposConflito,

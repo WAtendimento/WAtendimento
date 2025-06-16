@@ -2,7 +2,6 @@ const axios = require("axios");
 const buscarNoSupabase = require("../supabase/buscar-no-supabase");
 const criaLogger = require("../utils/logger");
 const supabaseCredentials = require("../../credenciais/supabase");
-const { credenciaisOpenAi } = require("../../credenciais/open-ai");
 const atualizarNoSupabase = require("../supabase/atualizar-no-supabase");
 /**
  * Cria uma nova thread no agente gpt e envia uma mensagem utilizando os dados fornecidos.
@@ -43,8 +42,8 @@ const atualizarNoSupabase = require("../supabase/atualizar-no-supabase");
  * }
  */
 async function criaThreadeEnviaMensagem({ data }) {
-  const apiKey = credenciaisOpenAi.headers.apiKey;
-  const assistantId = credenciaisOpenAi.headers.assistantId;
+  const apiKey = data.apiKey;
+  const assistantId = data.assistantId
 
   const mensagem = data.mensagem;
   const nome = data.nome;
@@ -53,7 +52,7 @@ async function criaThreadeEnviaMensagem({ data }) {
   const tabela = supabaseCredentials.table_data.table_contatos;
   const logger = criaLogger(telefoneContato);
   const filtrosAdicionais = data.filtrosAdicionais;
-  const camposConflito = data.camposConflito;
+  //const camposConflito = data.camposConflito;
 
   const filtrosComTelefone = {
     ...filtrosAdicionais,

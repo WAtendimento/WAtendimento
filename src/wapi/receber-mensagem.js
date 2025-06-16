@@ -4,6 +4,7 @@ const criaLogger = require('../utils/logger');
 const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
 const { imagemParaTexto } = require('../vision/detector-texto');
 const { consultaOpenAI } = require('../waissistente/consulta-open-ai');
+const { credenciaisOpenAi } = require('../../credenciais/open-ai');
 const credenciaisSupabase = require('../../credenciais/supabase');
 
 /**
@@ -127,9 +128,8 @@ async function processarMensagemJson(json, integraBot) {
           // TO-DO: deixar essas credenciais parametrizaveis
           mensagemCorreta = await consultaOpenAI({
             data: {
-              OPENAI_API_KEY:
-                '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',
-              assistant_id: 'asst_6nTSD7yNYIxcNByMIXxW1En0',
+              apiKey: credenciaisOpenAi.headers.apiKey,
+              assistant_id: credenciaisOpenAi.headers.assistantId_vision,
               invoice_text: textoUnico,
             },
           });

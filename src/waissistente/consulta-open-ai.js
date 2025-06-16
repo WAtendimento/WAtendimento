@@ -1,8 +1,8 @@
-/** @CustomParams{	"OPENAI_API_KEY": {		"type": "string",		"title": "OpenAI API Key",		"description": "API Key for accessing OpenAI services"	},	"assistant_id": {		"type": "string",		"title": "Assistant ID",		"description": "ID of the assistant you are communicating with"	},	"invoice_text": {		"type": "string",		"title": "Invoice Text",		"description": "Text of the invoice to send to the assistant"	}}*/
+
 const axios = require('axios');
 
 async function consultaOpenAI({ data }) {    
-    const apiKey = data.OPENAI_API_KEY;    
+    const apiKey = data.apiKey;    
     const assistantId = data.assistant_id;    
     const messageContent = data.invoice_text;  
    

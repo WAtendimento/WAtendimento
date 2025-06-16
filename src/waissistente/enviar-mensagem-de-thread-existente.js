@@ -1,6 +1,5 @@
 const axios = require("axios");
 const criaLogger = require("../utils/logger");
-const { credenciaisOpenAi } = require("../../credenciais/open-ai");
 
 /**
  * Envia uma mensagem para um thread existente e cria uma execução associada no OpenAI Assistants.
@@ -21,8 +20,8 @@ async function enviaMensagemThreadExistente({ data }) {
   const telefoneContato = data.telefoneContato;
   const dadosFornecidos = data.dadosFornecidos;
 
-  const apiKey = credenciaisOpenAi.headers.apiKey;
-  const assistantId = credenciaisOpenAi.headers.assistantId;
+  const apiKey = data.apiKey;
+  const assistantId = data.assistantId;
 
   if (!assistantId || !threadId) {
     throw new Error("Assistant ID or Thread ID is missing.");

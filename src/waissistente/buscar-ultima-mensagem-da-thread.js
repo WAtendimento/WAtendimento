@@ -1,8 +1,5 @@
 const axios = require("axios");
-const buscarNoSupaBase = require("../supabase/buscar-no-supabase");
-const { credenciaisOpenAi } = require("../../credenciais/open-ai");
 const criaLogger = require("../utils/logger");
-const supabaseCredentials = require("../../credenciais/supabase");
 const atualizarNoSupabase = require("../supabase/atualizar-no-supabase");
 /**
  * Busca a última mensagem de uma thread específica, utilizando os dados fornecidos.
@@ -15,18 +12,17 @@ const atualizarNoSupabase = require("../supabase/atualizar-no-supabase");
  * @param {string[]} data.camposConflito - Nomes das colunas que a função insertOuUpsert usará para definir o conflito em caso de upsert
  */
 
-const tabela = supabaseCredentials.table_data.table_contatos;
-const apiKey = credenciaisOpenAi.headers.apiKey;
-
 async function buscaUltimaMensagemThread({ data }) {
   const {
     threadId,
     lastMessageId,
+    apiKey,
+    tabela,
     telefoneContato,
     filtrosAdicionaisUnicos,
     camposConflito,
   } = data;
-
+ 
   const logger = criaLogger(telefoneContato);
   const filtrosComTelefone = {
     ...filtrosAdicionaisUnicos,
@@ -45,54 +41,27 @@ async function buscaUltimaMensagemThread({ data }) {
 
     const telefone = { telefone: ["=", telefoneContato] };
 
-    filtros = Object.assign(telefone, filtrosFormatados);
+    const filtros = Object.assign(telefone, filtrosFormatados);
     await new Promise((resolve) => setTimeout(resolve, 5000));
-    try {
-      resultadoProcessamento = await processNewMessages({
-        threadId,
-        lastMessageId,
-        apiKey,
-        telefoneContato,
-        logger,
-        filtrosComTelefone,
-        camposConflito,
-      });
-    } catch (erro) {
-      logger.error("Erro em processNewMessages:", erro.message);
-      logger.error(resultadoProcessamento);
-      console.error("Erro em processNewMessages:", erro.message);
-      console.log(logger.finish());
-      throw erro;
-    } finally {
-      // registro.interação_em_andamento = false;
-      // await atualizarNoSupabase(
-      //   tabela,
-      //   filtrosComTelefone,
-      //   { interação_em_andamento: false },
-      //   false
-      // );
-    }
-
+    
+    const resultadoProcessamento = await processNewMessages({
+      threadId,
+      lastMessageId,
+      apiKey,
+      tabela,
+      telefoneContato,
+      logger,
+      filtrosComTelefone,
+      camposConflito,
+    });
+   
     return resultadoProcessamento;
   } catch (erro) {
     logger.error("Erro em buscaUltimaMensagemThread:", erro.message);
-    console.error("Erro em buscaUltimaMensagemThread:", erro.message);
-
-    let registro = {
-      telefone: telefoneContato,
-    };
-
-    registro = Object.assign(registro, filtrosComTelefone);
+    logger.error("Stack:", erro.stack);
 
     if (!Array.isArray(camposConflito)) {
-      logger.error(
-        "ERRO: camposConflito não é um array como esperado!",
-        camposConflito
-      );
-      console.error(
-        "ERRO: camposConflito não é um array como esperado!",
-        camposConflito
-      );
+      logger.error("ERRO: camposConflito não é um array como esperado!", camposConflito);
     }
 
     return { status: "erro", mensagem: erro.message };
@@ -103,10 +72,9 @@ const processNewMessages = async ({
   threadId,
   lastMessageId,
   apiKey,
-  telefoneContato,
+  tabela,
   logger,
   filtrosComTelefone,
-  camposConflito,
 }) => {
   const messagesUrl = `https://api.openai.com/v1/threads/${threadId}/messages`;
 
@@ -261,22 +229,14 @@ const processNewMessages = async ({
     }
     const parsedContent = JSON.parse(messageContent);
 
-    registro = {
-      openai_id_ultima_mensagem: lastAssistantMessage.id,
-    };
-
-    //TO-DO apurar e limpar variáveis sem sentido, certificar-se:
-    registro = Object.assign(registro, filtrosComTelefone);
-    // console.log("atualizar 4", filtrosComTelefone);
-
+    // TO-DO Verificar se essa atualizacao no supabase pode ser feita no retorno da chamada
     await atualizarNoSupabase(
       tabela,
       filtrosComTelefone,
-      {
-        openai_id_ultima_mensagem: lastAssistantMessage.id,
-      },
+      { openai_id_ultima_mensagem: lastAssistantMessage.id },
       false
     );
+
     return parsedContent;
   } catch (error) {
     logger.error("Erro em processNewMessages:", error.message);
