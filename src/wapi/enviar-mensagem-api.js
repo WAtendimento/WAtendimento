@@ -22,7 +22,7 @@ async function enviarMensagemAPI(
   mensagemDoUsuario,
   multipleMessages = false
 ) {
-  const { host, connectionKey, token } = credenciais;
+  const { instanceId, token } = credenciais;
   const logger = criaLogger(number);
 
   if (!number || typeof number !== "string") {
@@ -41,14 +41,14 @@ async function enviarMensagemAPI(
     number = `55${number}`;
   }
 
-  const url = `https://${host}/quere/send-text?connectionKey=${connectionKey}`;
+  const url = `https://api.w-api.app/v1/message/send-text?instanceId=${instanceId}`;
 
   const sendSingleMessage = async (msg) => {
     try {
       const payload = {
         phoneNumber: number,
         text: msg,
-        delayMessage: 8,
+        delayMessage: 2,
       };
 
       const response = await axios.post(url, payload, {

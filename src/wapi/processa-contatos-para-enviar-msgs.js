@@ -1,6 +1,6 @@
 // Importações e configuração
 const { enviaMensagensEmMassa } = require('../wapi/enviar-mensagens-em-massa');
-const enviarMensagemAPI = require('../wapi/enviar-mensagem-unica');
+const enviarMensagemAPI = require('./enviar-mensagem-api');
 const criaLogger = require('../utils/logger');
 const supabase = require('../supabase/criar-cliente-supabase');
 const buscarNoSupabase = require('../supabase/buscar-no-supabase');

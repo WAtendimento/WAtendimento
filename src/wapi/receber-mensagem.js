@@ -5,6 +5,7 @@ const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
 const { imagemParaTexto } = require('../vision/detector-texto');
 const { consultaOpenAI } = require('../waissistente/consulta-open-ai');
 const credenciaisSupabase = require('../../credenciais/supabase');
+const { urlParaBase64 } = require('../utils/converter-url-para-base64');
 
 /**
  * Processa e extrai dados de uma mensagem JSON recebida pela WAPI.
@@ -33,20 +34,36 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
     }
     const dadosExtraidos = {
       idRemoto: json.sender?.id || null,
-      usuarioNumero: json.recipient?.id || null,
-      mensagem: json.messageText?.text || null,
+      usuarioNumero: json.chat?.id || null,
+      mensagem: json.msgContent?.conversation || null,
+
+      canonicalUrl: json.msgContent?.canonicalUrl || null,
+      textoLinkImagem: json.msgContent?.description || null,
+      tituloLinkImagem: json.msgContent?.title || null,
+
       tipoMensagem: json.event || null,
       idMensagem: json.messageId || null,
       timestampMensagem: json.moment || null,
       fromMe: json.fromMe ?? null,
       pushName: json.sender?.pushName || null,
-      contactCardName: json.contact?.displayName || null,
-      contactCardNumber: json.contact?.phone || null,
-      contactCardVcard: json.contact?.vcard || null,
-      audioMessage: json.audio || null,
-      imageBase64: json.image?.imageBase64 || null,
-      connectedPhone: json.connectedPhone || null,
+
+      contactCardName: json.msgContent?.contactMessage?.displayName || null,
+      contactCardVcard: json.msgContent?.contactMessage?.vcard || null,
+      contactCardNumber: extrairContactCardNumber(json.msgContent?.contactMessage?.vcard.vcard),// Usar regex pra pegar de dentro do vCard.
+
+      audioMessage: json.msgContent?.audioMessage?.url || null,
+      audioMimeType: json.msgContent?.audioMessage?.mimetype || null,
+      audioDurationSegundos: json.msgContent?.audioMessage?.seconds || null,
+
+      // Imagem – mudou de base64 para URL
+      imageUrl: json.msgContent?.imageMessage?.url || null,
+      imageMimeType: json.msgContent?.imageMessage?.mimetype || null,
+
+      // Localização em tempo real
       liveLocation: json.liveLocation || null,
+
+      // Número do telefone conectado
+      connectedPhone: json.connectedPhone || null,
     };
 
     console.log(`${dadosExtraidos.usuarioNumero} Dados Extraídos: ${JSON.stringify(dadosExtraidos, null, 2)}`);
@@ -77,7 +94,7 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
       logger.add('** MENSAGEM DE ÁUDIO DETECTADA **');
       try {
         // Extrair o base64 puro
-        const base64Puro = dadosExtraidos.audioMessage.audioBase64.split(',')[1];
+        const base64Puro = await urlParaBase64(dadosExtraidos.audioMessage);
 
         if (!base64Puro) {
           throw new Error('Base64 do áudio está vazio ou inválido.');
@@ -106,12 +123,12 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
     } else if (dadosExtraidos.mensagem) {
       logger.add('** MENSAGEM DE TEXTO DETECTADA **');
       mensagemCorreta = dadosExtraidos.mensagem;
-    } else if (dadosExtraidos.imageBase64) {
+    } else if (dadosExtraidos.imageUrl) {
       logger.add('** MENSAGEM COM IMAGEM DETECTADA **');
 
       try {
         // Remove o prefixo, se existir
-        const base64 = dadosExtraidos.imageBase64.split(',')[1];
+        const base64 = await urlParaBase64(dadosExtraidos.imageUrl);
         const buffer = Buffer.from(base64, 'base64');
 
         console.log(buffer);
@@ -221,6 +238,11 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
     console.error('Detalhes do erro:', error.stack);
     return null;
   }
+}
+
+function extrairContactCardNumber(vcardString) {
+  const match = vcardString.match(/waid=(\d+)/);
+  return match ? match[1] : null;
 }
 
 module.exports = { processarMensagemJson };

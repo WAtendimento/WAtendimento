@@ -1,7 +1,7 @@
 const axios = require('axios');
 const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
 const credenciaisSupabase = require('../../credenciais/supabase');
-const enviarMensagemAPI = require('../wapi/enviar-mensagem-unica');
+const enviarMensagemAPI = require('./enviar-mensagem-api');
 const criaLogger = require('../utils/logger');
 
 const logger = criaLogger('mensagemEmMassa');
