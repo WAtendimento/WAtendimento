@@ -15,7 +15,7 @@ const { converterParaMp3Base64 } = require('../utils/converter-mp3-para-base64_d
  * @returns {Object} Resultado do envio da mensagem.
  */
 async function enviarAudioAPI(credenciais, number, message, name, mensagemDoUsuario) {
-  const { instanceId, token } = credenciais;
+  const { instance_id, token } = credenciais;
   const logger = criaLogger(number);
 
   if (!number || typeof number !== 'string') {
@@ -30,7 +30,7 @@ async function enviarAudioAPI(credenciais, number, message, name, mensagemDoUsua
     number = `55${number}`;
   }
 
-  const url = `http://api.w-api.app/v1/message/send-audio?instanceId=${instanceId}`;
+  const url = `http://api.w-api.app/v1/message/send-audio?instance_id=${instance_id}`;
 
   const sendSingleMessage = async (audioUrl) => {
     try {

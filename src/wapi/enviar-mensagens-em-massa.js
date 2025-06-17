@@ -60,8 +60,7 @@ async function enviaMensagensEmMassa(json, credenciais) {
     const formattedNumber = `55${String(number).replace(/\D/g, '')}`;
 
     let credenciaisChip = {
-      host: credenciais.host,
-      connectionKey: credenciais.connection_key, // Altera connection_key para connectionKey
+      instance_id: credenciais.instance_id, // Altera instance_id para instance_id
       token: credenciais.token,
     };
 
@@ -72,8 +71,7 @@ async function enviaMensagensEmMassa(json, credenciais) {
         'Do : ',
         credenciais.connected_phone,
         credenciais.id_chip,
-        credenciais.connection_key,
-        credenciais.host,
+        credenciais.instance_id,
         credenciais.token,
         'id_cliente',
         id_cliente

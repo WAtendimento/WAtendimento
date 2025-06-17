@@ -38,10 +38,10 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
       id_chip: ['>=', 0],
     };
 
-    const camposSelecionados = ['id_chip', 'nome', 'connection_key', 'token', 'host', 'inativo', 'connected_phone'];
+    const camposSelecionados = ['id_chip', 'nome', 'instance_id', 'new_token', 'inativo', 'connected_phone'];
     let resultadoConsultaChip = await buscarNoSupabase(tabela, filtros, camposSelecionados, false);
 
-    resultadoConsultaChip = resultadoConsultaChip.filter((chip) => chip.inativo !== true && chip.connection_key !== null);
+    resultadoConsultaChip = resultadoConsultaChip.filter((chip) => chip.inativo !== true && chip.instance_id !== null);
 
     // Exibir todos os connected_phone conectados em um só log
     const connectedPhones = resultadoConsultaChip

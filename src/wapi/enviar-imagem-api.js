@@ -4,7 +4,7 @@ const criaLogger = require("../utils/logger");
 /**
  * Função para enviar mensagem via API WAPI.
  *
- * @param {Object} credenciais - Objeto contendo as credenciais: host, connectionKey e token.
+ * @param {Object} credenciais - Objeto contendo as credenciais: instance_id e token.
  * @param {string} number - Número de telefone do destinatário (em formato internacional, sem espaços ou símbolos).
  * @param {string} message - Mensagem única ou array de mensagens a serem enviadas.
  * @param {string} name - Nome do destinatário.
@@ -14,7 +14,7 @@ const criaLogger = require("../utils/logger");
  * @returns {Object} Resultado do envio da mensagem.
  */
 async function enviarImagemAPI(credenciais, number, message, name, mensagemDoUsuario) {
-  const { instanceId, token } = credenciais;
+  const { instance_id, token } = credenciais;
   const logger = criaLogger(number);
 
   if (!number || typeof number !== 'string') {
@@ -29,7 +29,7 @@ async function enviarImagemAPI(credenciais, number, message, name, mensagemDoUsu
     number = `55${number}`;
   }
 
-  const url = `https://api.w-api.app/v1/message/send-image?instanceId=${instanceId}`;
+  const url = `https://api.w-api.app/v1/message/send-image?instance_id=${instance_id}`;
 
   const sendSingleMessage = async (imageUrl) => {
     try {

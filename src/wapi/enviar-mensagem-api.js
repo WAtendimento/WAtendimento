@@ -5,7 +5,7 @@ const { dividirString } = require("../utils/dividir-string");
 /**
  * Função para enviar mensagem via API WAPI.
  *
- * @param {Object} credenciais - Objeto contendo as credenciais: host, connectionKey e token.
+ * @param {Object} credenciais - Objeto contendo as credenciais: instance_id e token.
  * @param {string} number - Número de telefone do destinatário (em formato internacional, sem espaços ou símbolos).
  * @param {string} message - Mensagem única ou array de mensagens a serem enviadas.
  * @param {string} name - Nome do destinatário.
@@ -22,7 +22,7 @@ async function enviarMensagemAPI(
   mensagemDoUsuario,
   multipleMessages = false
 ) {
-  const { instanceId, token } = credenciais;
+  const { instance_id, token } = credenciais;
   const logger = criaLogger(number);
 
   if (!number || typeof number !== "string") {
@@ -41,7 +41,7 @@ async function enviarMensagemAPI(
     number = `55${number}`;
   }
 
-  const url = `https://api.w-api.app/v1/message/send-text?instanceId=${instanceId}`;
+  const url = `https://api.w-api.app/v1/message/send-text?instance_id=${instance_id}`;
 
   const sendSingleMessage = async (msg) => {
     try {
@@ -103,9 +103,8 @@ module.exports = enviarMensagemAPI;
 
 // Chamada de Teste
 // const credenciais = {
-//   host: "host05.serverapi.dev",
 //   token: "tPSXhzSzeLWTm1Q7dMXWaYSP3glSPuyGY",
-//   connectionKey: "w-api_fXJqPqo5LL",
+//   instance_id: "w-api_fXJqPqo5LL",
 // };
 
 // (async () => {

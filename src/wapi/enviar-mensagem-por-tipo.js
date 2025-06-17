@@ -6,7 +6,7 @@ const enviarImagemAPI = require('./enviarImagemAPI');
  * Envia uma mensagem baseada no tipo ("texto", "audio" ou "imagem").
  *
  * @param {Object} options
- * @param {Object} options.credenciais - Objeto com host, connectionKey e token.
+ * @param {Object} options.credenciais - Objeto com instance_id e token.
  * @param {string} options.tipo - Tipo da mensagem: "texto" | "audio" | "imagem".
  * @param {string} options.telefone - Número do destinatário (formato internacional, sem símbolos).
  * @param {string} options.conteudo - Texto ou URL do áudio/imagem.
@@ -52,9 +52,8 @@ module.exports = enviarMensagemPorTipo;
 
 // (async () => {
 //   const credenciais = {
-//     host: 'host05.serverapi.dev',
 //     token: 'fZqyUAI1gI1FvfSJg4ZBoDx7PGp5PZUGl',
-//     connectionKey: 'w-api_KNLOJ5c4al',
+//     instance_id: 'w-api_KNLOJ5c4al',
 //   };
 
 //   await enviarMensagemPorTipo({
