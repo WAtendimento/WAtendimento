@@ -29,19 +29,19 @@ async function enviarImagemAPI(credenciais, number, message, name, mensagemDoUsu
     number = `55${number}`;
   }
 
-  const url = `https://api.w-api.app/v1/message/send-image?instance_id=${instance_id}`;
+  const url = `https://api.w-api.app/v1/message/send-image?instanceId=${credenciais.instance_id}`;
 
   const sendSingleMessage = async (imageUrl) => {
     try {
       const payload = {
-        phoneNumber: number,
+        phone: number,
         image: imageUrl, // nesse caso, url é a URL do áudio
         delayMessage: 2,
       };
 
       const response = await axios.post(url, payload, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${credenciais.token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -71,10 +71,15 @@ async function enviarImagemAPI(credenciais, number, message, name, mensagemDoUsu
 module.exports = enviarImagemAPI;
 
 // (async () => {
-//   await enviarAudioAPI(
+//   const credenciais = {
+//     token: "t1DMDiLA3gsXee7Lx69VKNN8AYX5VuFd5",
+//     instance_id: "LQXS31-KJJ2WW-4G61UR", // utilizando 558194747345
+//   };
+
+//   await enviarImagemAPI(
 //     credenciais,
-//     "81988532136",
-//     "https://storage.googleapis.com/SEU_AUDIO_VALIDO.mp3",
+//     "81988961959",
+//     "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/June_odd-eyed-cat.jpg/640px-June_odd-eyed-cat.jpg",
 //     "Loja Exemplo",
 //     "Mensagem original do usuário"
 //   );

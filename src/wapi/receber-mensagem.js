@@ -146,7 +146,7 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
             data: {
               apiKey: credenciaisOpenAi.headers.apiKey,
               assistant_id: credenciaisOpenAi.headers.assistantId_vision,
-              invoice_text: textoUnico,
+              invoice_message: textoUnico,
             },
           });
           //logger.add('>>> Texto detectado na imagem: ', textoUnico);
@@ -241,8 +241,8 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
 }
 
 function extrairContactCardNumber(vcardString) {
-  const match = vcardString.match(/waid=(\d+)/);
-  return match ? match[1] : null;
+  return vcardString?.match(/waid=(\d+)/)?.[1] || null;
 }
+
 
 module.exports = { processarMensagemJson };

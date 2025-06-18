@@ -41,19 +41,19 @@ async function enviarMensagemAPI(
     number = `55${number}`;
   }
 
-  const url = `https://api.w-api.app/v1/message/send-text?instance_id=${instance_id}`;
+  const url = `https://api.w-api.app/v1/message/send-text?instanceId=${credenciais.instance_id}`;
 
   const sendSingleMessage = async (msg) => {
     try {
       const payload = {
-        phoneNumber: number,
-        text: msg,
+        phone: number,
+        message: msg,
         delayMessage: 2,
       };
 
       const response = await axios.post(url, payload, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${credenciais.token}`,
           "Content-Type": "application/json",
         },
       });
@@ -102,15 +102,15 @@ async function enviarMensagemAPI(
 module.exports = enviarMensagemAPI;
 
 // Chamada de Teste
-// const credenciais = {
-//   token: "tPSXhzSzeLWTm1Q7dMXWaYSP3glSPuyGY",
-//   instance_id: "w-api_fXJqPqo5LL",
-// };
+//   const credenciais = {
+//     token: "t1DMDiLA3gsXee7Lx69VKNN8AYX5VuFd5",
+//     instance_id: "LQXS31-KJJ2WW-4G61UR", // utilizando 558194747345
+//   };
 
 // (async () => {
 //   await enviarMensagemAPI(
 //     credenciais,
-//     "81988532136",
+//     "81988961959",
 //     "Entendido, você está disposto a investir até R$160.000,00 e deseja o Corolla.\nVocê está pensando em um carro a partir de que ano?", // Teste com quebras de linha para múltiplas mensagens
 //     "Loja exemplo",
 //     "Mensagem do usuário",

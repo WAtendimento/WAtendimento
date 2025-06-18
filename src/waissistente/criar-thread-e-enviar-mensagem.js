@@ -23,7 +23,7 @@ const atualizarNoSupabase = require("../supabase/atualizar-no-supabase");
  * @example
  * {
  *   value: {
- *     text: string,         // Texto da resposta do assistente
+ *     message: string,         // Texto da resposta do assistente
  *     lastMessageId: string, // ID da última mensagem do assistente
  *     status: string,       // Status da resposta ("processed")
  *     resp1: string,        // Resposta 1, dependendo da lógica da aplicação
@@ -217,7 +217,7 @@ async function criaThreadeEnviaMensagem({ data }) {
           }
 
           return {
-            text: messageContent,
+            message: messageContent,
             lastMessageId: assistantMessage.id,
             status: "processed",
             ...parsedContent,
