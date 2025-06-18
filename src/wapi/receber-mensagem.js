@@ -60,7 +60,7 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
       imageMimeType: json.msgContent?.imageMessage?.mimetype || null,
 
       // Localização em tempo real
-      liveLocation: json.liveLocation || null,
+      liveLocation: json.msgContent?.liveLocationMessage || null,
 
       // Número do telefone conectado
       connectedPhone: json.connectedPhone || null,
