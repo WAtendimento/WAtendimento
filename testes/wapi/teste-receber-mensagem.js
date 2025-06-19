@@ -15,4 +15,4 @@ async function testarProcessamentoJson() {
 }
 
 // Executar o teste
-// testarProcessamentoJson();
+testarProcessamentoJson();
