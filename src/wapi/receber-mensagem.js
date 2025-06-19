@@ -1,11 +1,12 @@
 const { mensagemDeEntrada } = require('../utils/formatador-mensagens');
-const { converterAudioBase64ParaTexto } = require('../waissistente/converter-base64audio-para-texto');
+const { transcreverAudioPorUrl } = require('../utils/converter-audio-url-para-texto');
 const criaLogger = require('../utils/logger');
 const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
 const { imagemParaTexto } = require('../vision/detector-texto');
 const { consultaOpenAI } = require('../waissistente/consulta-open-ai');
 const credenciaisSupabase = require('../../credenciais/supabase');
 const { urlParaBase64 } = require('../utils/converter-url-para-base64');
+const credenciaisVision = require('../../credenciais/vision.json');
 
 /**
  * Processa e extrai dados de uma mensagem JSON recebida pela WAPI.
@@ -49,15 +50,19 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
 
       contactCardName: json.msgContent?.contactMessage?.displayName || null,
       contactCardVcard: json.msgContent?.contactMessage?.vcard || null,
-      contactCardNumber: extrairContactCardNumber(json.msgContent?.contactMessage?.vcard.vcard),// Usar regex pra pegar de dentro do vCard.
+      contactCardNumber: extrairContactCardNumber(json.msgContent?.contactMessage?.vcard),// Usar regex pra pegar de dentro do vCard.
 
       audioMessage: json.msgContent?.audioMessage?.url || null,
       audioMimeType: json.msgContent?.audioMessage?.mimetype || null,
+      audioDirectPath: json.msgContent?.audioMessage?.directPath || null,
+      audioMediaKey: json.msgContent?.audioMessage?.mediaKey || null,
       audioDurationSegundos: json.msgContent?.audioMessage?.seconds || null,
 
       // Imagem – mudou de base64 para URL
       imageUrl: json.msgContent?.imageMessage?.url || null,
       imageMimeType: json.msgContent?.imageMessage?.mimetype || null,
+      imageMediaKey: json.msgContent?.imageMessage?.mediaKey || null,
+      imageDirectPath: json.msgContent?.imageMessage?.directPath || null,
 
       // Localização em tempo real
       liveLocation: json.msgContent?.liveLocationMessage || null,
@@ -71,38 +76,26 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
     const telefoneContato = dadosExtraidos.idRemoto.split('@')[0];
     const logger = criaLogger(telefoneContato);
 
-    // Normalizar o número de telefone se estiver presente
-    let telefoneNormalizado = null;
-
      //  TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
 
-    if (dadosExtraidos.contactCardNumber) {
-      telefoneNormalizado = normalizeTelefone(dadosExtraidos.contactCardNumber);
-      if (!telefoneNormalizado) {
-        console.warn('Telefone não está no formato esperado e foi descartado.');
-      } else {
-        dadosExtraidos.contactCardNumber = telefoneNormalizado;
-        logger.setTelefone(telefoneNormalizado);
-      }
-    }
+    let mensagemCorreta = '';
 
-    let mensagemCorreta;
-
-    // Verificar se a mensagem é de áudio, imagem, contato ou texto
+    // Verificar se a mensagem é de áudio, imagem, localização em tempo real, contato ou texto
 
     if (dadosExtraidos.audioMessage) {
       logger.add('** MENSAGEM DE ÁUDIO DETECTADA **');
       try {
-        // Extrair o base64 puro
-        const base64Puro = await urlParaBase64(dadosExtraidos.audioMessage);
+        // Transcrever áudio usando a URL
+        // logger.add(">>> URL do áudio:", dadosExtraidos.audioMessage);
+        const transcricao = await baixarAudioETranscrever( {
+          instanceId: credenciaisWAPI.instance_id, 
+          mediaKey: dadosExtraidos.audioMediaKey, 
+          directPath: dadosExtraidos.audioDirectPath, 
+          type: "audio",
+          mimetype: dadosExtraidos.audioMimeType, 
+          tokenWAPI: credenciaisWAPI.token }
+        );
 
-        if (!base64Puro) {
-          throw new Error('Base64 do áudio está vazio ou inválido.');
-        }
-
-        const transcricao = await converterAudioBase64ParaTexto(base64Puro);
-
-        //  logger.add(">>> Texto transcrito do áudio:", transcricao);
         if (transcricao) {
           mensagemCorreta = transcricao; // Use o texto transcrito
         } else {
@@ -120,6 +113,8 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
       // Remove o código 55 do número
       const contactNumber = dadosExtraidos.contactCardNumber.replace(/^55/, '');
       mensagemCorreta = `${dadosExtraidos.contactCardName} ${contactNumber}`;
+
+      console.log('>>> Contato extraído:', mensagemCorreta);
     } else if (dadosExtraidos.mensagem) {
       logger.add('** MENSAGEM DE TEXTO DETECTADA **');
       mensagemCorreta = dadosExtraidos.mensagem;
@@ -127,14 +122,29 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
       logger.add('** MENSAGEM COM IMAGEM DETECTADA **');
 
       try {
+
+        // Receber URL da imagem e baixar a media para transcrever
+        const urlImagem = await baixarMedia({
+          instanceId: credenciaisWAPI.instance_id,
+          mediaKey: dadosExtraidos.imageMediaKey,
+          directPath: dadosExtraidos.imageDirectPath,
+          type: 'image',
+          mimetype: dadosExtraidos.imageMimeType,
+          tokenWAPI: credenciaisWAPI.token,
+        });
+
+        logger.add('+++ URL da imagem recebida:', urlImagem);
         // Remove o prefixo, se existir
-        const base64 = await urlParaBase64(dadosExtraidos.imageUrl);
+        const base64 = await urlParaBase64(urlImagem);
+
+        // console.log('+++ Base64 da imagem recebida:', base64);
+        // Converte base64 para buffer
         const buffer = Buffer.from(base64, 'base64');
 
         console.log(buffer);
 
         // Convertendo imagem pra texto
-        const textoDetectado = await imagemParaTexto({ image: buffer });
+        const textoDetectado = await imagemParaTexto({ image: buffer }, credenciaisVision);
         // Colocando todo texto numa unica string
         const textoUnico = textoDetectado.map((texto) => texto.description).join('\n');
 
@@ -180,7 +190,9 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
     // TRATAMENTO DE MENSAGENS DE INATIVAÇÃO DA IA
     // TO - DO Adicionar no banco ou em variaveis passadas como parametro
     // as palavras-chave que encerram o contato.
+    console.log('>>> Verificando se a mensagem é de encerramento de contato...');
     if (dadosExtraidos.fromMe === true) {
+      console.log('>>> Mensagem enviada por mim, não processar.');
       if (mensagemCorreta && (mensagemCorreta.includes(':)') || mensagemCorreta.includes('(:'))) {
         console.log('Mensagem de assunção de atendimento recebida.');
         const tabela = credenciaisSupabase.table_data.table_contatos;
@@ -210,16 +222,19 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
     }
 
     if (mensagemCorreta) {
-      let mensagemFormatada;
+      let mensagemFormatada = '';
+      console.log('>>> Mensagem correta:', mensagemCorreta);
       try {
         mensagemFormatada = await mensagemDeEntrada(mensagemCorreta);
         // logger.add(">>> mensagemFormatada após run:", mensagemFormatada);
+        console.log('>>> Mensagem formatada:', mensagemFormatada);
       } catch (error) {
         console.error('Erro ao executar run:', error);
         throw error;
       }
 
       //  logger.add(">>> Chamando integra Bot com funções do cliente...");
+      console.log('>>> Chamando integraBot com funções do cliente...');
 
       const result = await integraBot(
         mensagemFormatada,
@@ -229,7 +244,7 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
         credenciaisOpenAi
       );
 
-      // console.log("Resposta da OpenAI processada com sucesso:", result);
+      console.log("Resposta da OpenAI processada com sucesso:", result);
     }
 
     return dadosExtraidos;
@@ -241,6 +256,7 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
 }
 
 function extrairContactCardNumber(vcardString) {
+  console.log('Extrair número de contato do vCard:', vcardString);
   return vcardString?.match(/waid=(\d+)/)?.[1] || null;
 }
 

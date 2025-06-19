@@ -1,0 +1,35 @@
+{
+  "event": "webhookReceived",
+  "instanceId": "LQXS31-KJJ2WW-4G61UR",
+  "connectedPhone": "558194747345",
+  "isGroup": false,
+  "messageId": "3AD236CD8A664C94A09D",
+  "fromMe": false,
+  "chat": {
+    "id": "558188961959",
+    "profilePicture": null
+  },
+  "sender": {
+    "id": "558188961959",
+    "profilePicture": null,
+    "pushName": "Maria Cireno",
+    "verifiedBizName": ""
+  },
+  "moment": 1750356861,
+  "msgContent": {
+    "contactMessage": {
+      "displayName": "Livia Furtado",
+      "vcard": "BEGIN:VCARD\nVERSION:3.0\nN:;Livia Furtado;;;\nFN:Livia Furtado\nTEL;type=CELL;type=VOICE;waid=558196948615:+55 81 99694-8615\nEND:VCARD"
+    },
+    "messageContextInfo": {
+      "deviceListMetadata": {
+        "senderKeyHash": "bJC7ML1h8aSm5Q==",
+        "senderTimestamp": "1750347240",
+        "recipientKeyHash": "MznpsjlSmZcHmg==",
+        "recipientTimestamp": "1750206001"
+      },
+      "deviceListMetadataVersion": 2,
+      "messageSecret": "PKRbEEONppZ+FtMcItP8rPITm1acgzovZjrm1fVt37Q="
+    }
+  }
+}
