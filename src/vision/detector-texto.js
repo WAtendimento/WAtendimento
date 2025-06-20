@@ -1,6 +1,7 @@
 const vision = require('@google-cloud/vision');
+const credentials = require('../../credenciais/vision.json');
 
-async function imagemParaTexto({ image, credentials }) {
+async function imagemParaTexto({ image }) {
     try {
         // Cria o cliente com as credenciais passadas
         const client = new vision.ImageAnnotatorClient({

@@ -5,7 +5,6 @@ const { imagemParaTexto } = require('../vision/detector-texto');
 const { consultaOpenAI } = require('../waissistente/consulta-open-ai');
 const credenciaisSupabase = require('../../credenciais/supabase');
 const { urlParaBase64 } = require('../utils/converter-url-para-base64');
-const credenciaisVision = require('../../credenciais/vision.json');
 
 /**
  * Processa e extrai dados de uma mensagem JSON recebida pela WAPI.
@@ -78,8 +77,10 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
     
     const telefoneContato = dadosExtraidos.idRemoto.split('@')[0];
     const logger = criaLogger(telefoneContato);
-    console.log(`+++ ${dadosExtraidos.usuarioNumero} Dados Extraídos: ${JSON.stringify(dadosExtraidos, null, 2)}`);
+    logger.add(`+++ ${dadosExtraidos.usuarioNumero} Dados Extraídos: ${JSON.stringify(dadosExtraidos, null, 2)}`);
     
+    // Buscando credenciais WAPI do chip
+    const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone);
 
      //  TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
 
@@ -148,7 +149,7 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
         const buffer = Buffer.from(base64, 'base64');
 
         // Convertendo imagem pra texto
-        const textoDetectado = await imagemParaTexto({ image: buffer }, credenciaisVision);
+        const textoDetectado = await imagemParaTexto({ image: buffer });
 
         // Colocando todo texto numa unica string
         const textoUnico = textoDetectado.map((texto) => texto.description).join('\n');
