@@ -61,7 +61,7 @@ async function enviaMensagensEmMassa(json, credenciais) {
 
     let credenciaisChip = {
       instance_id: credenciais.instance_id, // Altera instance_id para instance_id
-      token: credenciais.token,
+      token: credenciais.new_token,
     };
 
     try {
@@ -72,7 +72,7 @@ async function enviaMensagensEmMassa(json, credenciais) {
         credenciais.connected_phone,
         credenciais.id_chip,
         credenciais.instance_id,
-        credenciais.token,
+        credenciais.new_token,
         'id_cliente',
         id_cliente
       );
