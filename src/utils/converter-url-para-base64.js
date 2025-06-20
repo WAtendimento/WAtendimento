@@ -4,7 +4,7 @@ async function urlParaBase64(url) {
   const resposta = await axios.get(url, { responseType: "arraybuffer" });
   const tipo = resposta.headers["content-type"];
   const base64 = Buffer.from(resposta.data, "binary").toString("base64");
-  return `data:${tipo};base64,${base64}`;
+  return base64;
 }
 
 module.exports = { urlParaBase64 };

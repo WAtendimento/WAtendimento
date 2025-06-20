@@ -5,6 +5,8 @@ const { imagemParaTexto } = require('../vision/detector-texto');
 const { consultaOpenAI } = require('../waissistente/consulta-open-ai');
 const credenciaisSupabase = require('../../credenciais/supabase');
 const { urlParaBase64 } = require('../utils/converter-url-para-base64');
+const { buscarCredenciaisWAPIdoChip } = require('../wapi/buscar-credenciais-wapi-do-chip');
+const { baixarAudioETranscrever, baixarMedia } = require('./baixar-media-wapi');
 
 /**
  * Processa e extrai dados de uma mensagem JSON recebida pela WAPI.

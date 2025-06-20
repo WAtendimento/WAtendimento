@@ -1,7 +1,7 @@
 const axios = require("axios");
 const FormData = require("form-data");
 
-const { transcreverAudioPorUrl } = require("./converter-audio-url-para-texto");
+const { transcreverAudioPorUrl } = require("../utils/converter-audio-url-para-texto");
 
 async function baixarAudioETranscrever({ instanceId, mediaKey, directPath, type, mimetype, tokenWAPI }) {
   try {
