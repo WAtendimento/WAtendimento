@@ -249,7 +249,7 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
       console.log("Resposta da OpenAI processada com sucesso:", result);
     }
 
-    //logger.finish();
+    logger.finish();
 
     return dadosExtraidos;
   } catch (error) {
