@@ -1,5 +1,5 @@
 const buscarNoSupabase = require("../supabase/buscar-no-supabase");
-const { credenciaisSupabase } = require("../../credenciais/supabase");
+const credenciaisSupabase = require("../../credenciais/supabase");
 
 async function buscarCredenciaisWAPIdoChip(telefone) {
     const tabela = credenciaisSupabase.table_data.table_chips; // Nome da tabela de chips;
