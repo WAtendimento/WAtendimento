@@ -36,19 +36,22 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
 
     // Extrair dados relevantes do JSON
     const dadosExtraidos = {
+
       // Informações do remetente e do chat
       idRemoto: json.sender?.id || null,
       usuarioNumero: json.chat?.id || null,
-      mensagem: json.msgContent?.conversation || null,
-
+      mensagem:
+        json.msgContent?.conversation ||
+        json.msgContent?.extendedTextMessage?.text || // <-- NOVO
+        null,
       canonicalUrl: json.msgContent?.canonicalUrl || null,
       textoLinkImagem: json.msgContent?.description || null,
       tituloLinkImagem: json.msgContent?.title || null,
-
       tipoMensagem: json.event || null,
       idMensagem: json.messageId || null,
       timestampMensagem: json.moment || null,
       fromMe: json.fromMe ?? null,
+      fromApi: json.fromApi ?? null,
       pushName: json.sender?.pushName || null,
 
       // Cartão de contato
@@ -74,6 +77,7 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
 
       // Número do telefone conectado
       connectedPhone: json.connectedPhone || null,
+
     };
 
     
@@ -195,7 +199,7 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
     // TO - DO Adicionar no banco ou em variaveis passadas como parametro
     // as palavras-chave que encerram o contato.
     // console.log('>>> Verificando se a mensagem é de encerramento de contato...');
-    if (dadosExtraidos.fromMe === true) {
+    if (dadosExtraidos.fromMe === true && dadosExtraidos.fromApi !== true) {
       //console.log('>>> Mensagem enviada por mim, não processar.');
       if (mensagemCorreta && (mensagemCorreta.includes(':)') || mensagemCorreta.includes('(:'))) {
         console.log('>>> Mensagem de assunção de atendimento recebida.');
