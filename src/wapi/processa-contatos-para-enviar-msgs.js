@@ -15,14 +15,6 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
 
   if (!controleExecucao.getEstado()) {
     console.log('##ENVIO EM MASSA: 🔴 O envio foi pausado. Interrompendo o envio.');
-    // await enviarMensagemAPI(
-    //   credenciaisWAPI.credenciaisWAPI,
-    //   '558198028661',
-    //   '##ENVIO EM MASSA: 🔴 O envio foi pausado. Pode recomeçar.',
-    //   'Pause nos envios - enviando para Pedro',
-    //   null
-    // );
-    // return { status: 'Pausado pelo usuário' };
   }
 
   try {
@@ -120,7 +112,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
           if (!controleExecucao.getEstado()) {
             console.log('##ENVIO EM MASSA: 🔴 O envio foi pausado. Interrompendo o envio.', credenciaisWAPI);
             await enviarMensagemAPI(
-              credenciaisWAPI.credenciaisWAPI,
+              credenciaisWAPI,
               '558198028661',
               '##ENVIO EM MASSA: 🔴 O envio foi pausado. Pode recomeçar.',
               'Pause nos envios - enviando para Pedro',
