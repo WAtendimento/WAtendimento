@@ -12,18 +12,16 @@ const TIPOS_DIVISAO = {
   PONTUACAO: "pontuacao",
 };
 
-function dividirString(
-  frase,
-  tipoDivisao = TIPOS_DIVISAO.QUEBRA_LINHA,
-  retornaQualParte
-) {
-  if (typeof frase !== "string" || frase.trim() === "") {
-    throw new Error(
-      "A frase deve ser uma string válida e não pode estar vazia."
-    );
+function dividirString(frase, tipoDivisao = TIPOS_DIVISAO.QUEBRA_LINHA, preservarListas = false, retornaQualParte) {
+  if (typeof frase !== 'string' || frase.trim() === '') {
+    throw new Error('A frase deve ser uma string válida e não pode estar vazia.');
   }
 
   const dividirPorQuebraDeLinha = (texto) => {
+    if (preservarListas) {
+      return agruparListas(texto);
+    }
+
     return texto
       .split(/\n+/)
       .map((parte) => parte.trim())
@@ -50,24 +48,61 @@ function dividirString(
       break;
 
     default:
-      throw new Error(
-        `Tipo de divisão inválido. Use: ${Object.values(TIPOS_DIVISAO).join(
-          ", "
-        )}.`
-      );
+      throw new Error(`Tipo de divisão inválido. Use: ${Object.values(TIPOS_DIVISAO).join(', ')}.`);
   }
 
   if (retornaQualParte !== undefined) {
     const index = parseInt(retornaQualParte, 10) - 1;
-    return [partes[index] || ""];
+    return [partes[index] || ''];
   }
 
   return partes;
 }
 
-module.exports = { dividirString, TIPOS_DIVISAO };
+function agruparListas(texto) {
+  const linhas = texto.split('\n');
+  const blocos = [];
+  let buffer = [];
 
-// const texto1 = `Ótimo, você procura o Corolla que mencionou.\nVocê está pensando em um carro a partir de que ano?`;
+  const isItemLista = (linha) => /^(\s*[\*\-]\s|\s*\d+\.\s|\s*[a-zA-Z]\))/i.test(linha.trim());
 
-// console.log("Divisão por quebra de linha (padrão):");
-// console.log(dividirString(texto1));
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i].trim();
+    const proximaLinha = linhas[i + 1]?.trim();
+
+    if (!linha) continue;
+
+    // Se a próxima linha for item de lista, junte essa também
+    const proximaEhLista = proximaLinha && isItemLista(proximaLinha);
+    const linhaAtualEhLista = isItemLista(linha);
+
+    if (linhaAtualEhLista || proximaEhLista || buffer.length) {
+      buffer.push(linha);
+    } else {
+      if (buffer.length) {
+        blocos.push(buffer.join('\n').trim());
+        buffer = [];
+      }
+      blocos.push(linha);
+    }
+  }
+
+  if (buffer.length) {
+    blocos.push(buffer.join('\n').trim());
+  }
+
+  return blocos;
+}
+
+
+
+module.exports = { dividirString, TIPOS_DIVISAO, agruparListas };
+
+// const texto1 = `Claro, vamos lá!
+
+// Me diga o que está buscando.
+
+// Assim consigo te ajudar melhor.`;
+
+
+// console.log(dividirString(texto1, "quebra_linha", true));

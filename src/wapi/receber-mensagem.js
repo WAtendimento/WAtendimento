@@ -28,6 +28,11 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
       throw new Error('Entrada inválida: JSON ausente ou mal formatado.');
     }
 
+    if (json.fromApi === true) {
+      console.log('Mensagem enviada pela API. Nenhum processamento será feito.');
+      return null;
+    }
+
     // Verificar se a mensagem é de um grupo
     if (json.isGroup === true) {
       console.log('Mensagem de grupo detectada. Nenhum processamento será feito.');
@@ -36,7 +41,6 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
 
     // Extrair dados relevantes do JSON
     const dadosExtraidos = {
-
       // Informações do remetente e do chat
       idRemoto: json.sender?.id || null,
       usuarioNumero: json.chat?.id || null,
@@ -44,9 +48,10 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
         json.msgContent?.conversation ||
         json.msgContent?.extendedTextMessage?.text || // <-- NOVO
         null,
-      canonicalUrl: json.msgContent?.canonicalUrl || null,
+     canonicalUrl: json.msgContent?.canonicalUrl || null,
       textoLinkImagem: json.msgContent?.description || null,
       tituloLinkImagem: json.msgContent?.title || null,
+
       tipoMensagem: json.event || null,
       idMensagem: json.messageId || null,
       timestampMensagem: json.moment || null,
@@ -77,16 +82,17 @@ async function processarMensagemJson(json, credenciaisOpenAi, integraBot) {
 
       // Número do telefone conectado
       connectedPhone: json.connectedPhone || null,
-
     };
 
     
     const telefoneContato = dadosExtraidos.idRemoto.split('@')[0];
     const logger = criaLogger(telefoneContato);
-    logger.add(`+++ ${dadosExtraidos.usuarioNumero} Dados Extraídos: ${JSON.stringify(dadosExtraidos, null, 2)}`);
+    console.log(`+++ ${dadosExtraidos.usuarioNumero} Dados Extraídos: ${JSON.stringify(dadosExtraidos, null, 2)}`);
     
     // Buscando credenciais WAPI do chip
     const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone);
+
+    console.log('credenciaisWAPI:', credenciaisWAPI);
 
      //  TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
 
