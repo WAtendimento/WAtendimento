@@ -186,7 +186,7 @@ async function controleDeThreads({
             telefoneContato: telefoneContato,
             filtrosAdicionais: filtrosAdicionaisContato,
             camposConflito: camposConflito,
-            apiKey: supabaseCredentials.headers.apiKey,
+            apiKey: credenciaisOpenAi.headers.apiKey,
             assistantId: assistantId,
             nomeThread: nomeThread,
           },
