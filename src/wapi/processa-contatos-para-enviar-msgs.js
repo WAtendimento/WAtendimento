@@ -5,11 +5,12 @@ const criaLogger = require('../utils/logger');
 const supabase = require('../supabase/criar-cliente-supabase');
 const buscarNoSupabase = require('../supabase/buscar-no-supabase');
 const supabaseCredentials = require('../../credenciais/supabase');
+const controleExecucao = require('./controlador-estado-execucao');
 
 
 const logger = criaLogger('mensagemEmMassa');
 
-async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, credenciaisWAPI, controleExecucao
+async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, credenciaisWAPI
 ) {
   console.log('##ENVIO EM MASSA: INICIANDO FUNÇÃO DE ENVIO EM MASSA');
 
