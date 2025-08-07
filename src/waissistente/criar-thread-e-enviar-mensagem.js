@@ -43,7 +43,7 @@ const atualizarNoSupabase = require("../supabase/atualizar-no-supabase");
  */
 async function criaThreadeEnviaMensagem({ data }) {
   const apiKey = data.apiKey;
-  const assistantId = data.assistantId
+  const assistantId = data.assistantId;
 
   const mensagem = data.mensagem;
   const nome = data.nome;
