@@ -1,4 +1,3 @@
-const supabase = require("../../credenciais/supabase");
 const gerarVariacoesDeTelefone = require("../utils/gerar-variacoes-telefone");
 
 /**
@@ -12,6 +11,7 @@ const gerarVariacoesDeTelefone = require("../utils/gerar-variacoes-telefone");
  * @returns {Promise<Object>} Resultado da atualização ou mensagem de sucesso.
  */
 async function atualizarNoSupabase(
+  supabase,
   tabela,
   filtros,
   dadosAtualizados,

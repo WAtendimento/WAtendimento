@@ -38,6 +38,7 @@ async function enviaMensagensEmMassa(json, credenciais) {
       };
 
       await atualizarNoSupabase(
+        supabase,
         credenciaisSupabase.table_data.table_contatos,
         {
           id_cliente: id_cliente,
@@ -101,6 +102,7 @@ async function enviaMensagensEmMassa(json, credenciais) {
         console.log('##ENVIO EM MASSA: Atualiza contato para sucesso de mensagem enviada');
 
         const att = await atualizarNoSupabase(
+          supabase,
            credenciaisSupabase.table_data.table_contatos,
           {
             id_cliente: id_cliente,
@@ -131,7 +133,7 @@ async function enviaMensagensEmMassa(json, credenciais) {
         if (statusCode === 504 || statusCode === 403 || statusCode === 401) {
           console.log(`##ENVIO EM MASSA: Erro ${statusCode}: Inativando chip ${credenciais.id_chip} no banco.`);
           motivo = 'Problema com o chip';
-          await atualizarNoSupabase( credenciaisSupabase.table_data.table_chips, { id_chip: credenciais.id_chip }, { inativo: true });
+          await atualizarNoSupabase(supabase,credenciaisSupabase.table_data.table_chips, { id_chip: credenciais.id_chip }, { inativo: true });
 
           console.log('##ENVIO EM MASSA: Inativei o chip');
           statusEnvio = {
@@ -145,6 +147,7 @@ async function enviaMensagensEmMassa(json, credenciais) {
           if (statusCode === 500) {
             motivo = 'Número não encontrado no WhatsApp';
             await atualizarNoSupabase(
+              supabase, 
                credenciaisSupabase.table_data.table_contatos,
               {
                 id_cliente: id_cliente,
@@ -157,6 +160,7 @@ async function enviaMensagensEmMassa(json, credenciais) {
           } else {
             motivo = `>>>>>> Erro não identificado ${mensagemErro}`;
             await atualizarNoSupabase(
+              supabase, 
                credenciaisSupabase.table_data.table_contatos,
               {
                 id_cliente: id_cliente,

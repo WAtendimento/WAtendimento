@@ -1,4 +1,3 @@
-const supabase = require("../../credenciais/supabase");
 
 /**
  * Função genérica para realizar um INSERT ou UPSERT em qualquer tabela no Supabase.
@@ -10,7 +9,7 @@ const supabase = require("../../credenciais/supabase");
  *
  * @returns {Promise<Object>} Resultado da operação.
  */
-async function insertOuUpsert(tabela, registro, isUpsert, camposConflito = []) {
+async function insertOuUpsert(supabase, tabela, registro, isUpsert, camposConflito = []) {
   if (!tabela || typeof tabela !== "string") {
     throw new Error(
       'O parâmetro "tabela" é obrigatório e deve ser uma string.'

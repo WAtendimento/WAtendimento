@@ -1,9 +1,7 @@
 const { createClient } = require("@supabase/supabase-js");
-const supabaseCredentials = require("../../credenciais/supabase");
 
-const { url, token } = supabaseCredentials.table_data;
+function criarClienteSupabase({ url, token }) {
+  return createClient(url, token);
+}
 
-// Criação do cliente Supabase
-const supabase = createClient(url, token);
-
-module.exports = supabase;
+module.exports = criarClienteSupabase;

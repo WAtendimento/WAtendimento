@@ -13,6 +13,7 @@ async function buscarCredenciaisWAPIdoChip(telefone) {
     ];
 
     const resultadoConsultaChip = await buscarNoSupabase(
+      supabase,
       tabela,
       filtros,
       camposSelecionados

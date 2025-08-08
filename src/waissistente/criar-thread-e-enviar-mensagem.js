@@ -254,7 +254,7 @@ async function criaThreadeEnviaMensagem({ data }) {
       ...filtrosFormatados,
     };
     const dadosOpenAIContato = await withTimeout(
-      buscarNoSupabase(tabela, filtros, ["openai_thread_id"], true),
+      buscarNoSupabase(supabase,tabela, filtros, ["openai_thread_id"], true),
       60000,
       "buscar contato"
     );
@@ -279,7 +279,7 @@ async function criaThreadeEnviaMensagem({ data }) {
       registro = Object.assign(registro, filtrosAdicionais);
 
       await withTimeout(
-        await atualizarNoSupabase(tabela, filtrosComTelefone, registro, false),
+        await atualizarNoSupabase(supabase, tabela, filtrosComTelefone, registro, false),
         60000,
         "atualizar contato"
       );
@@ -310,6 +310,7 @@ async function criaThreadeEnviaMensagem({ data }) {
     await withTimeout(
       60000,
       await atualizarNoSupabase(
+        supabase,
         tabela,
         filtrosComTelefone,
         { openai_id_ultima_mensagem: assistantResponse.lastMessageId },

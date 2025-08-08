@@ -1,4 +1,3 @@
-const supabase = require('../../credenciais/supabase');
 const gerarVariacoesDeTelefone = require('../utils/gerar-variacoes-telefone'); 
 /**
  * Função genérica para buscar dados no Supabase.
@@ -11,7 +10,7 @@ const gerarVariacoesDeTelefone = require('../utils/gerar-variacoes-telefone');
  *
  * @returns {Promise<Object>} Resultado da busca.
  */
-async function buscarNoSupabase(tabela, filtros, camposSelecionados = [], usarVariacoesTelefone = true, limiteRegistros) {
+async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = [], usarVariacoesTelefone = true, limiteRegistros) {
   if (!tabela || typeof tabela !== 'string') {
     throw new Error('O parâmetro "tabela" é obrigatório e deve ser uma string.');
   }
@@ -169,23 +168,3 @@ async function buscarNoSupabase(tabela, filtros, camposSelecionados = [], usarVa
 
 module.exports = buscarNoSupabase;
 
-// const filtros = {
-//   connected_phone: ['=', '11964277945'], // Simulando um número de telefone
-// };
-
-// const camposSelecionados = ['*'];
-
-// (async () => {
-//   try {
-//     const resultado = await buscarNoSupabase(
-//       'maccobranca_chips', // Substitua pelo nome real da tabela
-//       filtros,
-//       camposSelecionados,
-//       true, // Ativar variações de telefone
-//       2 // Limite de registros
-//     );
-//     console.log('Resultado da busca:', resultado);
-//   } catch (error) {
-//     console.error('Erro ao buscar dados:', error);
-//   }
-// })();

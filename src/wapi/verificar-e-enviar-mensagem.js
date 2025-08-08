@@ -2,10 +2,10 @@ const { criaThreadeEnviaMensagem } = require('../waissistente/criar-thread-e-env
 const { enviaMensagemThreadExistente } = require('../waissistente/enviar-mensagem-de-thread-existente');
 const { buscaUltimaMensagemThread } = require('../waissistente/buscar-ultima-mensagem-da-thread');
 const criaLogger = require('../utils/logger');
-const buscarNoSupabase = require('../supabase/buscar-no-supabase');
 const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
-const supabaseCredentials = require('../../credenciais/supabase');
+const supabaseCredentials = require('../../../credenciais/supabase');
 const acumulaMensagens = require('../utils/acumular-mensagens');
+const { tentaAdquirirLock, liberaLock } = require('../supabase/gerenciar-lock'); // ajuste o caminho conforme necessário
 
 /**
  * @typedef {Object} FiltrosAdicionaisContato
@@ -55,7 +55,6 @@ async function verificaEEnviaMensagem({
   const tabela = supabaseCredentials.table_data.table_contatos;
   const mensagensAcumuladas = acumulaMensagens(telefoneContato);
   const telefone = { telefone: ['=', telefoneContato] };
-  const camposSelecionados = ['interação_em_andamento'];
 
   const filtrosComTelefone = {
     ...filtrosAdicionaisContato,
@@ -79,26 +78,29 @@ async function verificaEEnviaMensagem({
 
   try {
     if (!contatoEncerrado) {
-      const dadosOpenAIContato = await buscarNoSupabase(tabela, filtros, camposSelecionados, true);
+      // console.log('Antes de adquirir lock');
+      const lockAdquirido = await tentaAdquirirLock(supabase, telefoneContato, tabela);
 
-      // console.log('dadosOpenAIContato', dadosOpenAIContato);
+      // console.log('logAdquirido = ', lockAdquirido);
 
-      if (!dadosOpenAIContato[0].interação_em_andamento) {
+      if (lockAdquirido) {
         await atualizarNoSupabase(
+          supabase,
           tabela,
           filtrosComTelefone,
-          {
-            interação_em_andamento: true,
-          },
+          { interação_em_andamento: true },
           false
         );
+
         logger.add(`Criando Buffer com 1ª mensagem: ${mensagem}`);
+        // console.log(`Criando buffer com a 1a msg:  ${mensagem}`);
         mensagensAcumuladas.add(mensagem);
-        logger.add('Delay de 20 segundos');
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        logger.add('Delay de 20 segundos para BUFFER');
+        // console.log('Delay de 20 segundos para BUFFER');
+        await new Promise((resolve) => setTimeout(resolve, 20000));
 
         mensagem = mensagensAcumuladas.finish();
-        
+
         const resultado = await controleDeThreads({
           dadosFornecidos,
           nomeContato,
@@ -108,29 +110,30 @@ async function verificaEEnviaMensagem({
           filtrosAdicionaisContato,
           camposConflito,
           assistantId,
-          nomeThread
+          nomeThread,
+          credenciaisOpenAi
         });
 
-        logger.add('Interacao_em_andamento setado para FALSE depois de concluir delay');
+        logger.add('Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
+        // console.log('Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
         await atualizarNoSupabase(
+          supabase,
           tabela,
           filtrosComTelefone,
-          {
-            interação_em_andamento: false,
-          },
+          { interação_em_andamento: false },
           false
         );
 
-        const retorno = { ...resultado };
+        await liberaLock(supabase, tabela, telefoneContato);
 
-        if (nomeThread === 'openai_thread_id') {
-          retorno.mensagensBufferizadas = mensagem; // <- usa a string já finalizada
-        }
-        
-        return retorno;
+        // console.log('Lock liberado');
+
+        return resultado;
       } else {
+        // Lock não adquirido — interação em andamento
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        logger.add(`Interação em andamento. Adicionando mensagem ao Buffer: ${mensagem}`);
+        logger.add(`Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
+        // console.log(`Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
         mensagensAcumuladas.add(mensagem);
         return {
           sucesso: true,
@@ -149,7 +152,11 @@ async function verificaEEnviaMensagem({
     }
   } catch (erro) {
     logger.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
-    console.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
+    // console.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
+
+    // Em caso de erro, tenta liberar o lock (por segurança)
+    await liberaLock(tabela, telefoneContato);
+
     return {
       sucesso: false,
       mensagem: 'Erro inesperado',
@@ -167,7 +174,8 @@ async function controleDeThreads({
   filtrosAdicionaisContato,
   camposConflito,
   assistantId,
-  nomeThread
+  nomeThread,
+  credenciaisOpenAi
 }) {
   const logger = criaLogger(telefoneContato);
   try {
@@ -192,7 +200,7 @@ async function controleDeThreads({
           },
         });
 
-        logger.add('>>> Mensagem enviada com sucesso.');
+        logger.add('>>> Mensagem enviada com sucesso: ');
 
         threadId = mensagemRecebidaPrimeiraThread.thread_id;
         lastMessageId = mensagemRecebidaPrimeiraThread.value?.messageId;
@@ -216,8 +224,8 @@ async function controleDeThreads({
             user_message: mensagem,
             nome: nomeContato,
             dadosFornecidos: dadosFornecidos,
-            telefoneContato: telefoneContato,
-            filtrosAdicionais: filtrosAdicionaisContato,
+            telefoneContato,
+            filtrosAdicionaisContato,
             apiKey: credenciaisOpenAi.headers.apiKey,
             assistantId: assistantId,
           },
@@ -240,8 +248,8 @@ async function controleDeThreads({
 
     try {
       const data = {
-        threadId: threadId,
-        lastMessageId: lastMessageId,
+        threadId,
+        lastMessageId,
         apiKey: credenciaisOpenAi.headers.apiKey,
         tabela: supabaseCredentials.table_data.table_contatos,
         telefoneContato: telefoneContato,
@@ -258,7 +266,6 @@ async function controleDeThreads({
       result.resumo = result.resumo || '';
 
       logger.add('JSON Resposta Bot:', result);
-      // console.log('JSON Resposta Bot:', result);
 
       const respostaBot = result.respostaBot;
       if (respostaBot) {

@@ -1,7 +1,7 @@
 {
   "name": "@watendimento/watendimento",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
@@ -9,12 +9,8 @@
     "type": "git",
     "url": "git+https://github.com/watendimento/watendimento.git"
   },
-  "scripts": {
-    "test": "jest",
-    "start": "node index.js"
-  },
   "keywords": [],
-  "author": "",
+  "author": "WAtendimento",
   "license": "ISC",
   "description": "",
   "dependencies": {

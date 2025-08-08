@@ -1,21 +1,34 @@
-// Importações e configuração
+/**
+ * Funções de acesso ao supabase
+ */
+const criarClienteSupabase = require('../supabase/criar-cliente-supabase');
+const buscarNoSupabase = require('../supabase/buscar-no-supabase');
+/**
+ * Funções de envio de mensagens
+ */
 const { enviaMensagensEmMassa } = require('../wapi/enviar-mensagens-em-massa');
 const enviarMensagemAPI = require('./enviar-mensagem-api');
-const criaLogger = require('../utils/logger');
-const supabase = require('../supabase/criar-cliente-supabase');
-const buscarNoSupabase = require('../supabase/buscar-no-supabase');
-const supabaseCredentials = require('../../credenciais/supabase');
 const controleExecucao = require('./controlador-estado-execucao');
 
-
-const logger = criaLogger('mensagemEmMassa');
-
-async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, credenciaisWAPI
+/**
+ * 
+ * @param {String} mensagemBase - Mensagem base para ser enviada aos contatos
+ * @param {Number} maxResults - Número máximo de resultados a serem processados
+ * @param {Object} credenciaisWAPI - Credenciais WAPI do chip a ser utilizado
+ * @param {Object} credenciaisSupabase - Credenciais do Supabase para acessar a tabela de contatos
+ * @returns {Promise<Object>} - Retorna um objeto com o total de contatos carregados, sucessos e falhas 
+ */
+async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase
 ) {
-  console.log('##ENVIO EM MASSA: INICIANDO FUNÇÃO DE ENVIO EM MASSA');
+  const supabase = criarClienteSupabase(credenciaisSupabase);
+  
+  // TO-DO: Buscar o telefone do responsável pelo banco
+  const telefoneResponsavel = '558198028661';
+
+  console.log('|| Envio em massa: Iniciando o processo de envio de mensagens em massa...');
 
   if (!controleExecucao.getEstado()) {
-    console.log('##ENVIO EM MASSA: 🔴 O envio foi pausado. Interrompendo o envio.');
+    console.log('|| Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.');
   }
 
   try {
@@ -26,13 +39,13 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
     let totalCarregados = 0;
 
     //Preparando dados para consulta da tabela dos Chips
-    const tabela = supabaseCredentials.table_data.table_chips;
+    const tabela = credenciaisSupabase.table_data.table_chips;
     const filtros = {
       id_chip: ['>=', 0],
     };
 
     const camposSelecionados = ['id_chip', 'nome', 'instance_id', 'new_token', 'inativo', 'connected_phone'];
-    let resultadoConsultaChip = await buscarNoSupabase(tabela, filtros, camposSelecionados, false);
+    let resultadoConsultaChip = await buscarNoSupabase(supabase,tabela, filtros, camposSelecionados, false);
 
     resultadoConsultaChip = resultadoConsultaChip.filter((chip) => chip.inativo !== true && chip.instance_id !== null);
 
@@ -42,33 +55,33 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
       .filter(Boolean) // Remove valores nulos ou undefined
       .join(', ');
 
-    console.log('##ENVIO EM MASSA: Telefones conectados:', connectedPhones);
+    console.log('|| Envio em massa: Telefones conectados:', connectedPhones);
 
     if (!resultadoConsultaChip || resultadoConsultaChip.length === 0) {
-      console.log('##ENVIO EM MASSA: Nenhum registro encontrado para o chip informado.');
+      console.log('|| Envio em massa: Nenhum registro encontrado para o chip informado.');
       throw new Error('Nenhum registro encontrado para o chip informado.');
     }
 
     while (true) {
       if (totalSucessos >= maxResults) {
-        console.log('##ENVIO EM MASSA: Limite de sucessos atingido. Interrompendo o envio.');
+        console.log('|| Envio em massa: Limite de sucessos atingido. Interrompendo o envio.');
         break;
       }
 
-      console.log(`##ENVIO EM MASSA: Carregando contatos a partir do offset ${offset}...`);
+      console.log(`|| Envio em massa: Carregando contatos a partir do offset ${offset}...`);
 
       const from = offset;
       const to = offset + pageSize - 1;
 
       // Ajustar a query com base no parâmetro `buscarSomenteSemMensagem`
       let baseQuery = supabase
-        .from(supabaseCredentials.table_data.table_contatos)
+        .from(credenciaisSupabase.table_data.table_contatos)
         .select('*')
         .order('id_cliente', { ascending: true })
         .range(from, to);
 
       // Condições para o comportamento padrão
-      console.log('##ENVIO EM MASSA: Enviando mensagem para contatos que ainda nao receberam mensagem alguma');
+      console.log('|| Envio em massa: Enviando mensagem para contatos que ainda nao receberam mensagem alguma');
       baseQuery.order('id_cliente', { ascending: false });
       //
       //Filtro para testes internos so com meu numero e de maria
@@ -76,7 +89,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
 
       const { data, error } = await baseQuery;
 
-      console.log(`##DEPURAÇÃO: Contatos carregados do Supabase:`, data);
+      console.log(`|| Depuração: Contatos carregados do Supabase:`, data);
 
       if (error) {
         console.error('Erro na consulta ao Supabase:', error.message);
@@ -86,11 +99,11 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
       const contatos = data || [];
       const quantidadeCarregada = contatos.length;
 
-      console.log(`##ENVIO EM MASSA: Contatos carregados nesta página: ${quantidadeCarregada}`);
+      console.log(`|| Envio em massa: Contatos carregados nesta página: ${quantidadeCarregada}`);
       totalCarregados += quantidadeCarregada;
 
       if (quantidadeCarregada === 0) {
-        console.log('##ENVIO EM MASSA: Todos os contatos foram processados.');
+        console.log('|| Envio em massa: Todos os contatos foram processados.');
         break;
       }
 
@@ -102,7 +115,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
       // Iterar sobre as mensagens geradas e enviar uma por vez
       for (const mensagem of mensagensGeradas) {
         if (totalSucessos >= maxResults) {
-          console.log('##ENVIO EM MASSA: Limite de sucessos atingido. Interrompendo o envio.');
+          console.log('|| Envio em massa: Limite de sucessos atingido. Interrompendo o envio.');
           break;
         }
 
@@ -111,12 +124,12 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
 
         while (!mensagemEnviada && resultadoConsultaChip.length > 0) {
           if (!controleExecucao.getEstado()) {
-            console.log('##ENVIO EM MASSA: 🔴 O envio foi pausado. Interrompendo o envio.', credenciaisWAPI);
+            console.log('|| Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.', credenciaisWAPI);
             await enviarMensagemAPI(
               credenciaisWAPI,
-              '558198028661',
-              '##ENVIO EM MASSA: 🔴 O envio foi pausado. Pode recomeçar.',
-              'Pause nos envios - enviando para Pedro',
+              telefoneResponsavel,
+              '|| Envio em massa: 🔴 O envio foi pausado. Pode recomeçar.',
+              'Pause nos envios - enviando para responsável',
               null
             );
             return { status: 'Pausado pelo usuário' };
@@ -125,14 +138,14 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
 
           const resultados = await enviaMensagensEmMassa({ mensagensGeradas: { contacts: [mensagem] } }, credenciaisChipAtual);
 
-          console.log('##ENVIO EM MASSA: ', resultados);
+          console.log('|| Envio em massa: ', resultados);
 
           if (resultados?.problemaNoChip) {
-            console.log(`##ENVIO EM MASSA: Chip ${credenciaisChipAtual.connected_phone} inativado. Tentando com o próximo chip...`);
+            console.log(`|| Envio em massa: Chip ${credenciaisChipAtual.connected_phone} inativado. Tentando com o próximo chip...`);
             resultadoConsultaChip = resultadoConsultaChip.filter((chip) => chip.id_chip !== credenciaisChipAtual.id_chip);
 
             if (resultadoConsultaChip.length === 0) {
-              console.log('##ENVIO EM MASSA: Todos os chips estão inativos. Interrompendo o envio.');
+              console.log('|| Envio em massa: Todos os chips estão inativos. Interrompendo o envio.');
               return {
                 totalCarregados,
                 sucessos: totalSucessos,
@@ -146,7 +159,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
             tentativas++;
             console.log('Novo chip', indiceCredencial);
             if (tentativas >= resultadoConsultaChip.length) {
-              console.log(`##ENVIO EM MASSA: Mensagem falhou mesmo após tentar com todos os chips. Pulando para a próxima.`);
+              console.log(`|| Envio em massa: Mensagem falhou mesmo após tentar com todos os chips. Pulando para a próxima.`);
               totalFalhas++;
               break;
             }
@@ -158,7 +171,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
           mensagemEnviada = true;
           const sucesso = resultados.sucesso === true;
 
-          console.log('##ENVIO EM MASSA: Não teve problema com o chip', sucesso);
+          console.log('|| Envio em massa: Não teve problema com o chip', sucesso);
           if (sucesso) {
             totalSucessos++;
             indiceCredencial = (indiceCredencial + 1) % resultadoConsultaChip.length;
@@ -169,16 +182,16 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
           break; // Sai do while e vai para a próxima mensagem
         }
 
-        console.log(`##ENVIO EM MASSA: Total de sucessos acumulados: ${totalSucessos}`);
-        console.log(`##ENVIO EM MASSA: Total de falhas acumuladas: ${totalFalhas}`);
+        console.log(`|| Envio em massa: Total de sucessos acumulados: ${totalSucessos}`);
+        console.log(`|| Envio em massa: Total de falhas acumuladas: ${totalFalhas}`);
 
         if (indiceCredencial === 0) {
-          console.log('##ENVIO EM MASSA: Aguardando Delay para recomeçar os envios');
+          console.log('|| Envio em massa: Aguardando Delay para recomeçar os envios');
           let delay = Math.random() * (3000 - 1000) + 1000;
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
         if (totalFalhas >= 20 && totalSucessos == 0) {
-          console.log('##ENVIO EM MASSA: Número de falhas consecutivas atingiu 5. Interrompendo o envio.');
+          console.log('|| Envio em massa: Número de falhas consecutivas atingiu 5. Interrompendo o envio.');
           return {
             totalCarregados,
             sucessos: totalSucessos,
@@ -192,7 +205,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
     }
 
     console.log(
-      `##ENVIO EM MASSA: Processamento concluído. Total de contatos carregados: ${totalCarregados}, sucessos: ${totalSucessos}, falhas: ${totalFalhas}`
+      `|| Envio em massa: Processamento concluído. Total de contatos carregados: ${totalCarregados}, sucessos: ${totalSucessos}, falhas: ${totalFalhas}`
     );
 
     return { totalCarregados, sucessos: totalSucessos, falhas: totalFalhas };
@@ -203,7 +216,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
 }
 
 function gerarMensagensParaEnvio(contatos, mensagemBase) {
-  console.log('##ENVIO EM MASSA: Iniciando a geração de mensagens para os contatos...');
+  console.log('|| Envio em massa: Iniciando a geração de mensagens para os contatos...');
 
   const contacts = contatos.map(({ telefone, nome_cliente, id_cliente }) => {
     // Pega apenas o primeiro nome do contato
@@ -219,11 +232,10 @@ function gerarMensagensParaEnvio(contatos, mensagemBase) {
     };
   });
 
-  console.log('##ENVIO EM MASSA: Mensagens geradas para todos os contatos.');
+  console.log('|| Envio em massa: Mensagens geradas para todos os contatos.');
   return { contacts };
 }
 
 module.exports = {
-  pesquisarContatosEGerarMensagens,
-  gerarMensagensParaEnvio,
+  pesquisarContatosEGerarMensagens
 };

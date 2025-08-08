@@ -231,6 +231,7 @@ const processNewMessages = async ({
 
     // TO-DO Verificar se essa atualizacao no supabase pode ser feita no retorno da chamada
     await atualizarNoSupabase(
+      supabase,
       tabela,
       filtrosComTelefone,
       { openai_id_ultima_mensagem: lastAssistantMessage.id },
