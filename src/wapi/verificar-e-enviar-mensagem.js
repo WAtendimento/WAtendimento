@@ -3,7 +3,6 @@ const { enviaMensagemThreadExistente } = require('../waissistente/enviar-mensage
 const { buscaUltimaMensagemThread } = require('../waissistente/buscar-ultima-mensagem-da-thread');
 const criaLogger = require('../utils/logger');
 const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
-const supabaseCredentials = require('../../../credenciais/supabase');
 const acumulaMensagens = require('../utils/acumular-mensagens');
 const { tentaAdquirirLock, liberaLock } = require('../supabase/gerenciar-lock'); // ajuste o caminho conforme necessário
 
@@ -50,9 +49,10 @@ async function verificaEEnviaMensagem({
   assistantId,
   nomeThread,
   credenciaisOpenAi,
+  supabase,
+  tabela,
 }) {
   const logger = criaLogger(telefoneContato);
-  const tabela = supabaseCredentials.table_data.table_contatos;
   const mensagensAcumuladas = acumulaMensagens(telefoneContato);
   const telefone = { telefone: ['=', telefoneContato] };
 
@@ -111,7 +111,9 @@ async function verificaEEnviaMensagem({
           camposConflito,
           assistantId,
           nomeThread,
-          credenciaisOpenAi
+          credenciaisOpenAi,
+          supabase,
+          tabela,
         });
 
         logger.add('Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
@@ -175,7 +177,9 @@ async function controleDeThreads({
   camposConflito,
   assistantId,
   nomeThread,
-  credenciaisOpenAi
+  credenciaisOpenAi,
+  supabase,
+  tabela,
 }) {
   const logger = criaLogger(telefoneContato);
   try {
@@ -197,7 +201,9 @@ async function controleDeThreads({
             apiKey: credenciaisOpenAi.headers.apiKey,
             assistantId: assistantId,
             nomeThread: nomeThread,
-          },
+            tabela: tabela,
+            supabase: supabase,
+          }
         });
 
         logger.add('>>> Mensagem enviada com sucesso: ');
@@ -251,10 +257,11 @@ async function controleDeThreads({
         threadId,
         lastMessageId,
         apiKey: credenciaisOpenAi.headers.apiKey,
-        tabela: supabaseCredentials.table_data.table_contatos,
+        tabela: tabela,
         telefoneContato: telefoneContato,
         filtrosAdicionaisUnicos: filtrosAdicionaisContato,
         camposConflito: camposConflito,
+        supabase: supabase,
       };
 
       let result = await buscaUltimaMensagemThread({ data });

@@ -21,6 +21,7 @@ async function buscaUltimaMensagemThread({ data }) {
     telefoneContato,
     filtrosAdicionaisUnicos,
     camposConflito,
+    supabase
   } = data;
  
   const logger = criaLogger(telefoneContato);
@@ -53,6 +54,7 @@ async function buscaUltimaMensagemThread({ data }) {
       logger,
       filtrosComTelefone,
       camposConflito,
+      supabase
     });
    
     return resultadoProcessamento;
@@ -75,6 +77,7 @@ const processNewMessages = async ({
   tabela,
   logger,
   filtrosComTelefone,
+  supabase,
 }) => {
   const messagesUrl = `https://api.openai.com/v1/threads/${threadId}/messages`;
 

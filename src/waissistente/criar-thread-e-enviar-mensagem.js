@@ -1,7 +1,7 @@
 const axios = require("axios");
 const buscarNoSupabase = require("../supabase/buscar-no-supabase");
 const criaLogger = require("../utils/logger");
-const supabaseCredentials = require("../../credenciais/supabase");
+//const supabaseCredentials = require("../../credenciais/supabase");
 const atualizarNoSupabase = require("../supabase/atualizar-no-supabase");
 /**
  * Cria uma nova thread no agente gpt e envia uma mensagem utilizando os dados fornecidos.
@@ -49,7 +49,8 @@ async function criaThreadeEnviaMensagem({ data }) {
   const nome = data.nome;
   const dadosFornecidos = data.dadosFornecidos;
   const telefoneContato = data.telefoneContato;
-  const tabela = supabaseCredentials.table_data.table_contatos;
+  const tabela = data.tabela;
+  const supabase = data.supabase;
   const logger = criaLogger(telefoneContato);
   const filtrosAdicionais = data.filtrosAdicionais;
   //const camposConflito = data.camposConflito;
