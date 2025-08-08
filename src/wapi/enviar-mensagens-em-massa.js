@@ -5,7 +5,7 @@ const criaLogger = require('../utils/logger');
 
 const logger = criaLogger('mensagemEmMassa');
 
-async function enviaMensagensEmMassa(json, credenciais, credenciaisSupabase) {
+async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSupabase) {
   if (!json || typeof json !== 'object' || !json.mensagensGeradas || !Array.isArray(json.mensagensGeradas.contacts)) {
     throw new Error('JSON inválido ou mal formatado.');
   }

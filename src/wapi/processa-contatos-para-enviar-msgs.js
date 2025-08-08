@@ -136,7 +136,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
           }
           const credenciaisChipAtual = resultadoConsultaChip[indiceCredencial];
 
-          const resultados = await enviaMensagensEmMassa({ mensagensGeradas: { contacts: [mensagem] } }, credenciaisChipAtual, credenciaisSupabase);
+          const resultados = await enviaMensagensEmMassa({ mensagensGeradas: { contacts: [mensagem] } }, credenciaisChipAtual, supabase, credenciaisSupabase);
 
           console.log('|| Envio em massa: ', resultados);
 
