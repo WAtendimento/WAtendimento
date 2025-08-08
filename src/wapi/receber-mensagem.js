@@ -60,7 +60,7 @@ async function processarMensagemJson(json, contexto = {}) {
     console.log('Mensagem recebida e extraída:', dadosExtraidos);
     
     // Buscando credenciais WAPI do chip
-    const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhones, supabase, credenciaisSupabase);
+    const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone, supabase, credenciaisSupabase);
     console.log('CredenciaisWAPI:', credenciaisWAPI);
 
     // TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
