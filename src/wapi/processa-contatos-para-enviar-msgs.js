@@ -23,7 +23,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
   const supabase = criarClienteSupabase(credenciaisSupabase);
   
   // TO-DO: Buscar o telefone do responsável pelo banco
-  const telefoneResponsavel = '558198028661';
+  const telefoneResponsavel = '5581988961959'; // numero de maria
 
   console.log('|| Envio em massa: Iniciando o processo de envio de mensagens em massa...');
 
@@ -136,7 +136,7 @@ async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, creden
           }
           const credenciaisChipAtual = resultadoConsultaChip[indiceCredencial];
 
-          const resultados = await enviaMensagensEmMassa({ mensagensGeradas: { contacts: [mensagem] } }, credenciaisChipAtual);
+          const resultados = await enviaMensagensEmMassa({ mensagensGeradas: { contacts: [mensagem] } }, credenciaisChipAtual, credenciaisSupabase);
 
           console.log('|| Envio em massa: ', resultados);
 

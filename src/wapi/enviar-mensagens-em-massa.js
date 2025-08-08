@@ -1,12 +1,11 @@
 const axios = require('axios');
 const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
-const credenciaisSupabase = require('../../credenciais/supabase');
 const enviarMensagemAPI = require('./enviar-mensagem-api');
 const criaLogger = require('../utils/logger');
 
 const logger = criaLogger('mensagemEmMassa');
 
-async function enviaMensagensEmMassa(json, credenciais) {
+async function enviaMensagensEmMassa(json, credenciais, credenciaisSupabase) {
   if (!json || typeof json !== 'object' || !json.mensagensGeradas || !Array.isArray(json.mensagensGeradas.contacts)) {
     throw new Error('JSON inválido ou mal formatado.');
   }
