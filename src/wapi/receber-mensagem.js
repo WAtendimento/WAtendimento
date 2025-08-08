@@ -35,6 +35,7 @@ async function processarMensagemJson(json, contexto = {}) {
   } = contexto;
 
   let dadosExtraidos = null;
+  const supabase = criarClienteSupabase(credenciaisSupabase);
 
   try {
     // Verificar se o JSON é válido
@@ -59,7 +60,7 @@ async function processarMensagemJson(json, contexto = {}) {
     console.log('Mensagem recebida e extraída:', dadosExtraidos);
     
     // Buscando credenciais WAPI do chip
-    const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone);
+    const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhones, supabase, credenciaisSupabase);
     console.log('CredenciaisWAPI:', credenciaisWAPI);
 
     // TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
@@ -79,6 +80,7 @@ async function processarMensagemJson(json, contexto = {}) {
     await tratarComandosDeAtivacao({
       dadosExtraidos,
       mensagemCorreta,
+      supabase,
       credenciaisSupabase,
     });
 
@@ -204,9 +206,7 @@ async function interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisO
 }
 
 // Função para tratar comandos de ativação/inativação do contato
-async function tratarComandosDeAtivacao({ dadosExtraidos, mensagemCorreta, credenciaisSupabase }) {
-
-  const supabase = criarClienteSupabase(credenciaisSupabase);
+async function tratarComandosDeAtivacao({ dadosExtraidos, mensagemCorreta, supabase, credenciaisSupabase }) {
 
   // TO-DO Adicionar no banco ou em variaveis passadas como parametro
   // as palavras-chave que encerram o contato.
