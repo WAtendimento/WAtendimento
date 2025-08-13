@@ -79,7 +79,7 @@ async function verificaEEnviaMensagem({
   try {
     if (!contatoEncerrado) {
       // console.log('Antes de adquirir lock');
-      const lockAdquirido = await tentaAdquirirLock(supabase, telefoneContato, tabela);
+      const lockAdquirido = await tentaAdquirirLock(supabase, telefoneContato, tabela, filtrosAdicionaisContato.id_chip);
 
       // console.log('logAdquirido = ', lockAdquirido);
 
@@ -126,7 +126,7 @@ async function verificaEEnviaMensagem({
           false
         );
 
-        await liberaLock(supabase, tabela, telefoneContato);
+        await liberaLock(supabase, tabela, telefoneContato, filtrosAdicionaisContato.id_chip);
 
         // console.log('Lock liberado');
 
@@ -157,7 +157,7 @@ async function verificaEEnviaMensagem({
     // console.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
 
     // Em caso de erro, tenta liberar o lock (por segurança)
-    await liberaLock(tabela, telefoneContato);
+    await liberaLock(tabela, telefoneContato, );
 
     return {
       sucesso: false,
