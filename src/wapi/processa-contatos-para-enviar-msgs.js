@@ -1,14 +1,14 @@
 /**
  * Funções de acesso ao supabase
  */
-const criarClienteSupabase = require('../supabase/criar-cliente-supabase');
-const buscarNoSupabase = require('../supabase/buscar-no-supabase');
+const { criarClienteSupabase } = require('../supabase/criar-cliente-supabase');
+const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
 /**
  * Funções de envio de mensagens
  */
 const { enviaMensagensEmMassa } = require('../wapi/enviar-mensagens-em-massa');
-const enviarMensagemAPI = require('./enviar-mensagem-api');
-const controleExecucao = require('./controlador-estado-execucao');
+const { enviarMensagemAPI } = require('./enviar-mensagem-api');
+const { controleExecucao } = require('./controlador-estado-execucao');
 
 /**
  * 

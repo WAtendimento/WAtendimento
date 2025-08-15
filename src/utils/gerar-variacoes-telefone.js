@@ -69,7 +69,7 @@ function gerarVariacoesDeTelefone(telefone) {
   return Array.from(variacoes);
 }
 
-module.exports = gerarVariacoesDeTelefone;
+module.exports = { gerarVariacoesDeTelefone };
 
 // const resultado = gerarVariacoesDeTelefone(81988532136);
 // console.log(resultado);

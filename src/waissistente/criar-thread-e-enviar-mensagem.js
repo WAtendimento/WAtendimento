@@ -1,8 +1,7 @@
 const axios = require("axios");
-const buscarNoSupabase = require("../supabase/buscar-no-supabase");
-const criaLogger = require("../utils/logger");
-//const supabaseCredentials = require("../../credenciais/supabase");
-const atualizarNoSupabase = require("../supabase/atualizar-no-supabase");
+const { buscarNoSupabase } = require("../supabase/buscar-no-supabase");
+const { criaLogger } = require("../utils/logger");
+const { atualizarNoSupabase } = require("../supabase/atualizar-no-supabase");
 /**
  * Cria uma nova thread no agente gpt e envia uma mensagem utilizando os dados fornecidos.
  *

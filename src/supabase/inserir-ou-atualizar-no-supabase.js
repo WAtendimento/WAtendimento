@@ -81,4 +81,4 @@ async function insertOuUpsert(supabase, tabela, registro, isUpsert, camposConfli
   }
 }
 
-module.exports = insertOuUpsert;
+module.exports = { insertOuUpsert };

@@ -16,4 +16,4 @@ const controleExecucao = {
   },
 };
 
-module.exports = controleExecucao;
+module.exports = { controleExecucao };

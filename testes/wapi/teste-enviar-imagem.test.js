@@ -1,4 +1,4 @@
-const enviarImagemAPI = require("../../src/wapi/enviar-imagem-api");
+const { enviarImagemAPI } = require("../../src/wapi/enviar-imagem-api");
 
 
 // (async () => {

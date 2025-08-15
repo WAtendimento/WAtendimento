@@ -7,7 +7,7 @@ const { extrairContactCardNumber } = require('../utils/extrair-numero-contato');
 /**
  * Funções de processamento de imagem
  */
-const consultaOpenAI = require('../waissistente/consulta-open-ai');
+const { consultaOpenAI } = require('../waissistente/consulta-open-ai');
 const { imagemParaTexto } = require('../vision/detector-texto');
 /**
  * Funções de integração com a WAPI
@@ -17,8 +17,8 @@ const { baixarAudioETranscrever, baixarMedia } = require('./baixar-media-wapi');
 /**
  * Funções de integração com o Supabase
  */
-const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
-const criarClienteSupabase = require('../supabase/criar-cliente-supabase');
+const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
+const { criarClienteSupabase } = require('../supabase/criar-cliente-supabase');
 
 /**
  * Processa e extrai dados de uma mensagem JSON recebida pela WAPI.

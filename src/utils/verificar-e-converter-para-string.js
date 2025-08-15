@@ -5,4 +5,4 @@ function verificaEConverteParaString(parametro) {
   return parametro;
 }
 
-module.exports = verificaEConverteParaString;
+module.exports = { verificaEConverteParaString };

@@ -1,4 +1,4 @@
-const enviarMensagemAPI = require('../../src/wapi/enviar-mensagem-api');
+const { enviarMensagemAPI } = require('../../src/wapi/enviar-mensagem-api');
 
 // Chamada de Teste
 //   const credenciais = {

@@ -1,5 +1,5 @@
 const axios = require("axios");
-const criaLogger = require("../utils/logger");
+const { criaLogger } = require("../utils/logger");
 
 /**
  * Envia uma mensagem para um thread existente e cria uma execução associada no OpenAI Assistants.

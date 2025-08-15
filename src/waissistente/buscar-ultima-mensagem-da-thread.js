@@ -1,6 +1,6 @@
 const axios = require("axios");
-const criaLogger = require("../utils/logger");
-const atualizarNoSupabase = require("../supabase/atualizar-no-supabase");
+const { criaLogger } = require("../utils/logger");
+const { atualizarNoSupabase } = require("../supabase/atualizar-no-supabase");
 /**
  * Busca a última mensagem de uma thread específica, utilizando os dados fornecidos.
  *

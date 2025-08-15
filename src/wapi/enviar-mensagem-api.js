@@ -1,5 +1,5 @@
 const axios = require("axios");
-const criaLogger = require("../utils/logger");
+const { criaLogger } = require("../utils/logger");
 const { dividirString } = require("../utils/dividir-string");
 
 /**
@@ -99,5 +99,5 @@ async function enviarMensagemAPI(
   }
 }
 
-module.exports = enviarMensagemAPI;
+module.exports = { enviarMensagemAPI };
 

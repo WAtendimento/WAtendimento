@@ -1,4 +1,4 @@
-const gerarVariacoesDeTelefone = require("../utils/gerar-variacoes-telefone");
+const { gerarVariacoesDeTelefone } = require("../utils/gerar-variacoes-telefone");
 
 /**
  * Função genérica para atualizar dados no Supabase com verificação de segurança.
@@ -173,7 +173,7 @@ async function atualizarNoSupabase(
   }
 }
 
-module.exports = atualizarNoSupabase;
+module.exports = { atualizarNoSupabase };
 
 // //Exemplo de uso
 // const filtros = { rowId: 33 };

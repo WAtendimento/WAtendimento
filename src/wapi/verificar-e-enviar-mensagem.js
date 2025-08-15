@@ -1,9 +1,9 @@
 const { criaThreadeEnviaMensagem } = require('../waissistente/criar-thread-e-enviar-mensagem');
 const { enviaMensagemThreadExistente } = require('../waissistente/enviar-mensagem-de-thread-existente');
 const { buscaUltimaMensagemThread } = require('../waissistente/buscar-ultima-mensagem-da-thread');
-const criaLogger = require('../utils/logger');
-const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
-const acumulaMensagens = require('../utils/acumular-mensagens');
+const { criaLogger } = require('../utils/logger');
+const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
+const { acumulaMensagens } = require('../utils/acumular-mensagens');
 const { tentaAdquirirLock, liberaLock } = require('../supabase/gerenciar-lock'); // ajuste o caminho conforme necessário
 
 /**

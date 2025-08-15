@@ -157,4 +157,4 @@ const criaLogger = (id) => {
   };
 };
 
-module.exports = criaLogger;
+module.exports = { criaLogger };

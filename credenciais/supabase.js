@@ -13,4 +13,4 @@ const supabaseCredentials = {
 };
 
 
-module.exports = supabaseCredentials;
+module.exports = { supabaseCredentials };

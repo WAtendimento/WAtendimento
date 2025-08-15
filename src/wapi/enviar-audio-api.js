@@ -1,5 +1,5 @@
 const axios = require('axios');
-const criaLogger = require("../utils/logger");
+const { criaLogger } = require("../utils/logger");
 const { converterParaMp3Base64 } = require('../utils/converter-mp3-para-base64_do_glide');
 
 /**
@@ -77,5 +77,5 @@ async function enviarAudioAPI(credenciais, number, message, name, mensagemDoUsua
     return sendSingleMessage(message);
 }
 
-module.exports = enviarAudioAPI;
+module.exports = { enviarAudioAPI };
 

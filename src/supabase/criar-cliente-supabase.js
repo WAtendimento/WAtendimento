@@ -4,4 +4,4 @@ function criarClienteSupabase({ url, token }) {
   return createClient(url, token);
 }
 
-module.exports = criarClienteSupabase;
+module.exports = { criarClienteSupabase };

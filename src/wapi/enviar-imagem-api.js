@@ -1,5 +1,5 @@
 const axios = require('axios');
-const criaLogger = require("../utils/logger");
+const { criaLogger } = require("../utils/logger");
 
 /**
  * Função para enviar mensagem via API WAPI.
@@ -68,5 +68,5 @@ async function enviarImagemAPI(credenciais, number, message, name, mensagemDoUsu
   return sendSingleMessage(message);
 }
 
-module.exports = enviarImagemAPI;
+module.exports = { enviarImagemAPI };
 

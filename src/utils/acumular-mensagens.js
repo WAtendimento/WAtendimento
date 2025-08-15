@@ -49,7 +49,7 @@ const acumulaMensagens = (telefone) => {
   };
 };
 
-module.exports = acumulaMensagens;
+module.exports = { acumulaMensagens };
 
 // TESTE DIRETAMENTE NO MESMO ARQUIVO
 // const acumulador = acumulaMensagens("123456789");

@@ -15,7 +15,7 @@ function existeDiferencaDeDias(dias, timestamp) {
 }
 
 // Exporta a função para uso em outros módulos
-module.exports = existeDiferencaDeDias;
+module.exports = { existeDiferencaDeDias }
 // Uso: const existeDiferencaDeDias = require('./existe-diferenca-dias.js');
 // Exemplo: existeDiferencaDeDias(2, '2023-10-01T12:00:00Z');
 
