@@ -27,7 +27,7 @@ const criarClienteSupabase = require('../supabase/criar-cliente-supabase');
  * @returns {Object|null} - Dados extraídos da mensagem ou null em caso de erro.
  */
 
-async function processarMensagemJson(json, contexto = {}) {
+async function receberMensagem(json, contexto = {}) {
   const {
     credenciaisOpenAi,
     credenciaisSupabase,
@@ -106,7 +106,7 @@ async function processarMensagemJson(json, contexto = {}) {
 
 
 /**
- *  Funções de apoio ao processarMensagemJson
+ *  Funções de apoio ao receberMensagem
  */
 
 // Função para extrair dados relevantes do JSON
@@ -224,4 +224,4 @@ async function tratarComandosDeAtivacao({ dadosExtraidos, mensagemCorreta, supab
   }
 }
 
-module.exports = { processarMensagemJson };
+module.exports = { receberMensagem };

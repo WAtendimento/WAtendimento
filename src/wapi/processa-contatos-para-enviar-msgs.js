@@ -18,7 +18,7 @@ const controleExecucao = require('./controlador-estado-execucao');
  * @param {Object} credenciaisSupabase - Credenciais do Supabase para acessar a tabela de contatos
  * @returns {Promise<Object>} - Retorna um objeto com o total de contatos carregados, sucessos e falhas 
  */
-async function pesquisarContatosEGerarMensagens(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase
+async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase
 ) {
   const supabase = criarClienteSupabase(credenciaisSupabase);
   
@@ -237,5 +237,5 @@ function gerarMensagensParaEnvio(contatos, mensagemBase) {
 }
 
 module.exports = {
-  pesquisarContatosEGerarMensagens
+  processarMensagensEmMassa
 };

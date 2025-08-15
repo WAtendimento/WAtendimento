@@ -1,4 +1,4 @@
 module.exports = {
-  processarMensagemJson: require("./wapi/receber-mensagem").processarMensagemJson,
-  pesquisarContatosEGerarMensagens: require("./wapi/processa-contatos-para-enviar-msgs").pesquisarContatosEGerarMensagens,
+  receberMensagem: require("./wapi/receber-mensagem").receberMensagem,
+  processarMensagensEmMassa: require("./wapi/processa-contatos-para-enviar-msgs").processarMensagensEmMassa,
 };

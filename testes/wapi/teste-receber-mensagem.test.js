@@ -1,4 +1,4 @@
-const { processarMensagemJson } = require("../../src/wapi/receber-mensagem");
+const { receberMensagem } = require("../../src/wapi/receber-mensagem");
 const jsonTeste = require("./teste-receber-mensagem.json");
 
 // Exemplo de JSON para teste (mensagem de contato - Jéssica Medeiros)
@@ -7,7 +7,7 @@ const jsonTeste = require("./teste-receber-mensagem.json");
 // Função para testar a chamada
 async function testarProcessamentoJson() {
   try {
-    const resultado = await processarMensagemJson(jsonTeste);
+    const resultado = await receberMensagem(jsonTeste);
     //  console.log("Resultado do processamento:", resultado);
   } catch (error) {
     console.error("Erro ao processar o JSON de teste:", error.message);
