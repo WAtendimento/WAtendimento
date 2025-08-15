@@ -27,13 +27,8 @@ const { criarClienteSupabase } = require('../supabase/criar-cliente-supabase');
  * @returns {Object|null} - Dados extraídos da mensagem ou null em caso de erro.
  */
 
-async function receberMensagem(json, contexto = {}) {
-  const {
-    credenciaisOpenAi,
-    credenciaisSupabase,
-    integraBot, 
-  } = contexto;
-
+async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, integraBot) {
+ 
   let dadosExtraidos = null;
   const supabase = criarClienteSupabase(credenciaisSupabase);
 
