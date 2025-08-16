@@ -18,7 +18,7 @@ const { baixarAudioETranscrever, baixarMedia } = require('./baixar-media-wapi');
  * Funções de integração com o Supabase
  */
 const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
-const { criarClienteSupabase } = require('../supabase/criar-cliente-supabase');
+//const { criarClienteSupabase } = require('../supabase/criar-cliente-supabase');
 
 /**
  * Processa e extrai dados de uma mensagem JSON recebida pela WAPI.
@@ -27,7 +27,7 @@ const { criarClienteSupabase } = require('../supabase/criar-cliente-supabase');
  * @returns {Object|null} - Dados extraídos da mensagem ou null em caso de erro.
  */
 
-async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, integraBot) {
+async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, supabase, integraBot) {
 
   console.log('Iniciando processamento da mensagem recebida...');
   console.log('JSON recebido:', JSON.stringify(json, null, 2));
@@ -35,7 +35,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, int
   console.log('Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
  
   let dadosExtraidos = null;
-  const supabase = criarClienteSupabase(credenciaisSupabase);
+  c//onst supabase = criarClienteSupabase(credenciaisSupabase);
 
   try {
     // Verificar se o JSON é válido
@@ -60,7 +60,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, int
     console.log('Mensagem recebida e extraída:', dadosExtraidos);
     
     // Buscando credenciais WAPI do chip
-    const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone, credenciaisSupabase);
+    const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone, supabase, credenciaisSupabase);
     console.log('CredenciaisWAPI:', credenciaisWAPI);
 
     // TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste

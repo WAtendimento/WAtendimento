@@ -1,5 +1,3 @@
-const { criaLogger } = require("./utils/logger");
-
 
 module.exports = {
   // WAPI - WhatsApp Web API
@@ -17,6 +15,7 @@ module.exports = {
   // Supabase - Supabase
   insertOuUpsert: require("./supabase/inserir-ou-atualizar-no-supabase").insertOuUpsert,
   buscarNoSupabase: require("./supabase/buscar-no-supabase").buscarNoSupabase,
+  criarClienteSupabase: require("./supabase/criar-cliente-supabase").criarClienteSupabase,
   
   // OpenAI - OpenAI
   consultaOpenAI: require("./waissistente/consulta-open-ai").consultaOpenAI,

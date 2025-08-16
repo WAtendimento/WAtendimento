@@ -1,7 +1,6 @@
 /**
  * Funções de acesso ao supabase
  */
-const { criarClienteSupabase } = require('../supabase/criar-cliente-supabase');
 const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
 /**
  * Funções de envio de mensagens
@@ -18,9 +17,8 @@ const { controleExecucao } = require('./controlador-estado-execucao');
  * @param {Object} credenciaisSupabase - Credenciais do Supabase para acessar a tabela de contatos
  * @returns {Promise<Object>} - Retorna um objeto com o total de contatos carregados, sucessos e falhas 
  */
-async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase
+async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase, supabase
 ) {
-  const supabase = criarClienteSupabase(credenciaisSupabase);
   
   // TO-DO: Buscar o telefone do responsável pelo banco
   const telefoneResponsavel = '5581988961959'; // numero de maria
