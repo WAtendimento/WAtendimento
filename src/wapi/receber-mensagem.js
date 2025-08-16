@@ -60,7 +60,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, int
     console.log('Mensagem recebida e extraída:', dadosExtraidos);
     
     // Buscando credenciais WAPI do chip
-    const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone, supabase, credenciaisSupabase);
+    const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone, credenciaisSupabase);
     console.log('CredenciaisWAPI:', credenciaisWAPI);
 
     // TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
@@ -72,6 +72,8 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, int
       console.log('Nenhuma mensagem interpretada. Encerrando processamento.');
       return null;
     }
+
+    console.log('Mensagem interpretada:', mensagemCorreta);
 
     // Formatar a mensagem para envio
     const mensagemFormatada = await mensagemDeEntrada(mensagemCorreta);
