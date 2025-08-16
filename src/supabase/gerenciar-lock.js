@@ -25,7 +25,7 @@ async function liberaLock(supabase,tabela, telefoneContato, id_chip) {
   const { data, error } = await supabase.rpc('liberar_lock', {
     p_telefone: telefoneContato,
     p_tabela: tabela,
-    p_chip: i_chip
+    p_chip: id_chip
   });
 
   if (error) {
