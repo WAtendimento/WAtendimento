@@ -1,3 +1,4 @@
+const { criaLogger } = require("./utils/logger");
 
 
 module.exports = {
@@ -11,6 +12,7 @@ module.exports = {
   // Utilitários - Utils
   gerarData: require("./utils/gerar-data").gerarData,
   delay: require("./utils/delay").delay,
+  criaLogger: require("./utils/logger").criaLogger,
 
   // Supabase - Supabase
   insertOuUpsert: require("./supabase/inserir-ou-atualizar-no-supabase").insertOuUpsert,
