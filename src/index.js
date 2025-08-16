@@ -11,11 +11,12 @@ module.exports = {
   gerarData: require("./utils/gerar-data").gerarData,
   delay: require("./utils/delay").delay,
   criaLogger: require("./utils/logger").criaLogger,
-
+  mensagemDeSaida: require("./utils/formatador-mensagens").mensagemDeSaida,
+  
   // Supabase - Supabase
   insertOuUpsert: require("./supabase/inserir-ou-atualizar-no-supabase").insertOuUpsert,
   buscarNoSupabase: require("./supabase/buscar-no-supabase").buscarNoSupabase,
-  criarClienteSupabase: require("./supabase/criar-cliente-supabase").criarClienteSupabase,
+  atualizarNoSupabase: require("./supabase/atualizar-no-supabase").atualizarNoSupabase,
   
   // OpenAI - OpenAI
   consultaOpenAI: require("./waissistente/consulta-open-ai").consultaOpenAI,

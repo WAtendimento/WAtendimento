@@ -18,7 +18,6 @@ const { baixarAudioETranscrever, baixarMedia } = require('./baixar-media-wapi');
  * Funções de integração com o Supabase
  */
 const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
-//const { criarClienteSupabase } = require('../supabase/criar-cliente-supabase');
 
 /**
  * Processa e extrai dados de uma mensagem JSON recebida pela WAPI.
@@ -35,7 +34,6 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
   console.log('Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
  
   let dadosExtraidos = null;
-  //const supabase = criarClienteSupabase(credenciaisSupabase);
 
   try {
     // Verificar se o JSON é válido
