@@ -35,7 +35,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
   console.log('Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
  
   let dadosExtraidos = null;
-  c//onst supabase = criarClienteSupabase(credenciaisSupabase);
+  //const supabase = criarClienteSupabase(credenciaisSupabase);
 
   try {
     // Verificar se o JSON é válido
