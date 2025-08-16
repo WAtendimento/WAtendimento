@@ -97,7 +97,7 @@ const criaLogger = (id) => {
       if (!contexto.telefone) {
         contexto.telefone = remoteJid;
       } else {
-        //  console.warn("Telefone já foi definido. Ignorando redefinição.");
+        //  console.warn("[WAt]Telefone já foi definido. Ignorando redefinição.");
       }
     },
     error(message, variable) {

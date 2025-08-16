@@ -21,10 +21,10 @@
  * const base64Audio = "base64stringaqui";
  * converterAudioBase64ParaTexto(base64Audio)
  *   .then(response => {
- *     console.log("Texto transcrito:", response.text);
+ *     console.log("[WAt]Texto transcrito:", response.text);
  *   })
  *   .catch(error => {
- *     console.error("Erro na transcrição:", error);
+ *     console.error("[WAt]Erro na transcrição:", error);
  *   });
  *
  * @throws {Error} Lança um erro caso haja algum problema com a requisição ou processamento do áudio.
@@ -48,7 +48,7 @@ async function converterAudioBase64ParaTexto(base64Audio) {
     form.append("language", "pt"); // Definindo o idioma como português
 
     // Log para verificar o conteúdo do FormData
-    console.log("Headers FormData:", form.getHeaders());
+    console.log("[WAt]Headers FormData:", form.getHeaders());
 
     // Defina os cabeçalhos necessários para a requisição
     const headers = {
@@ -65,14 +65,14 @@ async function converterAudioBase64ParaTexto(base64Audio) {
     );
 
     // validando response
-    console.log("Transcrição", response.data);
+    console.log("[WAt]Transcrição", response.data);
     return response.data;
   } catch (error) {
     // Captura e loga erros detalhados
     if (error.response) {
-      console.error("Erro ao enviar áudio para a OpenAI:", error.response.data);
+      console.error("[WAt]Erro ao enviar áudio para a OpenAI:", error.response.data);
     } else {
-      console.error("Erro na requisição:", error.message);
+      console.error("[WAt]Erro na requisição:", error.message);
     }
     throw error; // Repassa o erro
   }

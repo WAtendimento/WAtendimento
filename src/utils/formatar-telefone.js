@@ -5,7 +5,7 @@ const formatarTelefone = (telefone) => {
   
     // Valida comprimento e prefixo
     if (telefoneString.length < 10 || telefoneString.length > 13) {
-      //console.warn("[LOG] Número fora do formato esperado:", telefoneString);
+      //console.warn("[WAt][LOG] Número fora do formato esperado:", telefoneString);
       return null; // Formato inesperado
     } else {
         return telefoneString;

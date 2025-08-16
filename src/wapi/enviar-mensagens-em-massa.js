@@ -29,7 +29,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
     const { number, message, id_cliente } = contato;
 
     if (!number || !message || !id_cliente) {
-      console.warn('Dados insuficientes para envio:', contato);
+      console.warn('[WAt]Dados insuficientes para envio:', contato);
       statusEnvio = {
         id_cliente,
         sucesso: false,
@@ -51,7 +51,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
     }
 
     if (typeof id_cliente !== 'number') {
-      console.warn('id_cliente não é um número. Valor recebido:', id_cliente);
+      console.warn('[WAt]id_cliente não é um número. Valor recebido:', id_cliente);
       statusEnvio = { id_cliente, sucesso: false, motivo: 'id_cliente inválido' };
 
       continue;
@@ -88,7 +88,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
 
       resultadoEnvio = Array.isArray(resultadoEnvio) ? resultadoEnvio[resultadoEnvio.length - 1] : resultadoEnvio;
 
-      console.log(`Resultado enviado para ${formattedNumber}`, resultadoEnvio.sucesso);
+      console.log(`[WAt]Resultado enviado para ${formattedNumber}`, resultadoEnvio.sucesso);
       const dataAtual = new Date().toLocaleString('pt-BR', {
         timeZone: 'America/Sao_Paulo',
       });
@@ -98,7 +98,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
       const dataFormatada = `${ano}-${mes}-${dia} ${hora}`; // Formata para o padrão YYYY-MM-DD HH:MM:SS
 
       if (resultadoEnvio.sucesso) {
-        console.log('|| Envio em massa: Atualiza contato para sucesso de mensagem enviada');
+        console.log('[WAt]|| Envio em massa: Atualiza contato para sucesso de mensagem enviada');
 
         const att = await atualizarNoSupabase(
           supabase,
@@ -112,7 +112,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
           }
         );
 
-        console.log(`|| Envio em massa: Contato ${id_cliente} atualizado com id_chip = ${credenciais.id_chip} | ${credenciais.connected_phone}`);
+        console.log(`[WAt]|| Envio em massa: Contato ${id_cliente} atualizado com id_chip = ${credenciais.id_chip} | ${credenciais.connected_phone}`);
 
         mensagensEnviadasComSucesso++;
         statusEnvio = { id_cliente, sucesso: true };
@@ -130,11 +130,11 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
         const mensagemErro = resultadoEnvio?.erro;
 
         if (statusCode === 504 || statusCode === 403 || statusCode === 401) {
-          console.log(`|| Envio em massa: Erro ${statusCode}: Inativando chip ${credenciais.id_chip} no banco.`);
+          console.log(`[WAt]|| Envio em massa: Erro ${statusCode}: Inativando chip ${credenciais.id_chip} no banco.`);
           motivo = 'Problema com o chip';
           await atualizarNoSupabase(supabase,credenciaisSupabase.table_data.table_chips, { id_chip: credenciais.id_chip }, { inativo: true });
 
-          console.log('|| Envio em massa: Inativei o chip');
+          console.log('[WAt]|| Envio em massa: Inativei o chip');
           statusEnvio = {
             id_cliente,
             sucesso: false,
@@ -155,7 +155,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
                 ultimo_envio_em_massa: dataFormatada,
               }
             );
-            console.log(`|| Envio em massa: Número ${number} não encontrado no WhatsApp. Atualizando no banco...`);
+            console.log(`[WAt]|| Envio em massa: Número ${number} não encontrado no WhatsApp. Atualizando no banco...`);
           } else {
             motivo = `>>>>>> Erro não identificado ${mensagemErro}`;
             await atualizarNoSupabase(
@@ -178,7 +178,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
         }
       }
     } catch (error) {
-      console.log('|| Envio em massa: ', error);
+      console.log('[WAt]|| Envio em massa: ', error);
     }
   }
 

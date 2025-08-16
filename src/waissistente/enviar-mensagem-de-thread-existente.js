@@ -85,25 +85,25 @@ async function enviaMensagemThreadExistente({ data }) {
           runId: runResponse.data.id,
         };
       } catch (error) {
-        console.error(`[enviarMensagemThreadExistente] Erro na tentativa ${attempts}:`, error.message);
+        console.error(`[WAt][enviarMensagemThreadExistente] Erro na tentativa ${attempts}:`, error.message);
         logger.error(">>> Erro na tentativa", attempts);
 
         if (attempts >= maxRetries) {
-          console.error("Número máximo de tentativas alcançado.");
+          console.error("[WAt]Número máximo de tentativas alcançado.");
           logger.error("Número máximo de tentativas alcançado.");
           throw new Error(
             `Erro ao criar mensagem ou execução após ${maxRetries} tentativas: ${error.message}`
           );
         }
 
-        // console.log("Tentando novamente em 2 segundos...");
+        // console.log("[WAt]Tentando novamente em 2 segundos...");
         await new Promise((resolve) => setTimeout(resolve, 2000)); // Delay antes de tentar novamente
       }
     }
   };
 
   try {
-    //  console.log("Iniciando processo...");
+    //  console.log("[WAt]Iniciando processo...");
     await delay(2000);
     const { messageResponse, runId } = await createMessageAndRun();
     return {
@@ -113,7 +113,7 @@ async function enviaMensagemThreadExistente({ data }) {
       messageId: messageResponse.id,
     };
   } catch (error) {
-    console.error("Erro na execução:", error.message);
+    console.error("[WAt]Erro na execução:", error.message);
     logger.error("Erro na execução:", error.message);
     return { success: false, error: error.message };
   }

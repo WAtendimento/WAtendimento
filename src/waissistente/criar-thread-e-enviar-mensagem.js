@@ -71,7 +71,7 @@ async function criaThreadeEnviaMensagem({ data }) {
     let timeoutHandle;
     const timeoutPromise = new Promise((_, reject) => {
       timeoutHandle = setTimeout(() => {
-        console.warn(`>>> Tempo limite atingido na etapa: ${stepName}`);
+        console.warn(`[WAt]>>> Tempo limite atingido na etapa: ${stepName}`);
         reject(new Error(`Tempo limite atingido na etapa: ${stepName}`));
       }, timeout);
     });

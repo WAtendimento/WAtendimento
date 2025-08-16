@@ -36,9 +36,9 @@ async function transcreverAudioPorUrl(urlAudio) {
     return resposta.data;
   } catch (error) {
     if (error.response?.data) {
-      console.error("Erro na API:", error.response.data);
+      console.error("[WAt]Erro na API:", error.response.data);
     } else {
-      console.error("Erro geral:", error.message);
+      console.error("[WAt]Erro geral:", error.message);
     }
     throw error;
   }

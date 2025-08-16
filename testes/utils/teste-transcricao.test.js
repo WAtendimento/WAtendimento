@@ -13,9 +13,9 @@ async function testarTranscricao() {
 
   try {
     const resultado = await baixarAudioETranscrever(parametros);
-    console.log("📝 Texto transcrito:", resultado);
+    console.log("[WAt]📝 Texto transcrito:", resultado);
   } catch (erro) {
-    console.error("❌ Erro no teste de transcrição:", erro);
+    console.error("[WAt]❌ Erro no teste de transcrição:", erro);
   }
 }
 

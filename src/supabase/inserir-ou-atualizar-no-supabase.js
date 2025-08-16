@@ -76,7 +76,7 @@ async function insertOuUpsert(supabase, tabela, registro, isUpsert, camposConfli
       return data;
     }
   } catch (error) {
-    console.error("[ERRO] Falha na operação:", error.message);
+    console.error("[WAt][ERRO] Falha na operação:", error.message);
     throw error;
   }
 }

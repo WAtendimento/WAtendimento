@@ -59,7 +59,7 @@ async function enviarMensagemAPI(
       });
 
       // logger.add("Mensagem enviada com sucesso:", msg);
-      // console.log("Mensagem enviada com sucesso:", msg);
+      // console.log("[WAt]Mensagem enviada com sucesso:", msg);
 
       logger.result(
         `"${msg}"\n- Destinatário: ${name}\n- Em resposta a: "${mensagemDoUsuario}".`
@@ -72,7 +72,7 @@ async function enviarMensagemAPI(
       );
 
       if (error.response) {
-        console.error("Detalhes do erro da API:", {
+        console.error("[WAt]Detalhes do erro da API:", {
           status: error.response.status,
           data: error.response.data,
         });

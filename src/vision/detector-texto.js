@@ -19,7 +19,7 @@ async function imagemParaTexto({ image }) {
             return [];
         }
     } catch (error) {
-        console.error('Erro na detecção de texto:', error);
+        console.error('[WAt]Erro na detecção de texto:', error);
         throw error;
     }
 }

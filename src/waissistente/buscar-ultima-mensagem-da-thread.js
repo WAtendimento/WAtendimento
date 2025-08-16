@@ -178,11 +178,11 @@ const processNewMessages = async ({
     const lastAssistantMessage = await fetchMessagesWithRetries();
 
     if (!lastAssistantMessage) {
-      console.log(">>> Nenhuma mensagem de 'assistant' encontrada.");
+      console.log("[WAt][WAt] Nenhuma mensagem de 'assistant' encontrada.");
       return { message: null, status: "no messages found" };
     }
 
-    console.log(">>> Resposta recebida da OpenAI");
+    console.log("[WAt][WAt] Resposta recebida da OpenAI");
 
     if (lastMessageId && lastMessageId === lastAssistantMessage.id) {
       logger.add(
@@ -218,7 +218,7 @@ const processNewMessages = async ({
         lastAssistantMessage.content[0].text.value
       );
     } else {
-      console.log(`Estrutura inesperada da mensagem: ${lastAssistantMessage}`);
+      console.log(`[WAt]Estrutura inesperada da mensagem: ${lastAssistantMessage}`);
       // throw new Error("Estrutura inesperada da mensagem.", messageContent);
       console.log(
         "Objeto do Last Assistant Message",
@@ -244,7 +244,7 @@ const processNewMessages = async ({
     return parsedContent;
   } catch (error) {
     logger.error("Erro em processNewMessages:", error.message);
-    console.error("Erro em processNewMessages:", error.message);
+    console.error("[WAt]Erro em processNewMessages:", error.message);
     console.log(logger.finish());
     throw error;
   }

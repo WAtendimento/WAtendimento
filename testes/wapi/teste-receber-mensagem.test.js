@@ -8,9 +8,9 @@ const jsonTeste = require("./teste-receber-mensagem.json");
 async function testarProcessamentoJson() {
   try {
     const resultado = await receberMensagem(jsonTeste);
-    //  console.log("Resultado do processamento:", resultado);
+    //  console.log("[WAt]Resultado do processamento:", resultado);
   } catch (error) {
-    console.error("Erro ao processar o JSON de teste:", error.message);
+    console.error("[WAt]Erro ao processar o JSON de teste:", error.message);
   }
 }
 

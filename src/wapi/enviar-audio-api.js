@@ -38,7 +38,7 @@ async function enviarAudioAPI(credenciais, number, message, name, mensagemDoUsua
 
       // Se for link do Glide, converte para base64
       if (audioUrl.includes('glide-prod.appspot.com')) {
-        console.log('🔄 Convertendo áudio do Glide para MP3 real...');
+        console.log('[WAt]🔄 Convertendo áudio do Glide para MP3 real...');
         audioFinal = await converterParaMp3Base64(audioUrl);
       }
 
@@ -56,15 +56,15 @@ async function enviarAudioAPI(credenciais, number, message, name, mensagemDoUsua
       });
 
       // logger.add("Mensagem enviada com sucesso:", url);
-      // console.log("Mensagem enviada com sucesso:", url);
+      // console.log("[WAt]Mensagem enviada com sucesso:", url);
 
       logger.result(`"${audioUrl}"\n- Destinatário: ${name}\n- Em resposta a: "${mensagemDoUsuario}".`);
       return { sucesso: true, telefone: number, response: response.data };
     } catch (error) {
-      console.error(`Erro ao enviar mensagem para ${name} (${number}):`, error.message);
+      console.error(`[WAt]Erro ao enviar mensagem para ${name} (${number}):`, error.message);
 
       if (error.response) {
-        console.error('Detalhes do erro da API:', {
+        console.error('[WAt]Detalhes do erro da API:', {
           status: error.response.status,
           data: error.response.data,
         });

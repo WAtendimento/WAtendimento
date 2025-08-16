@@ -10,7 +10,7 @@ function encontrarChave(obj, key, defaultValue = null, depth = 0) {
   console.log(
     `${indent}Iniciando busca da chave: "${key}" na profundidade ${depth}`
   );
-  console.log(`${indent}Objeto atual: ${JSON.stringify(obj, null, 2)}`);
+  console.log(`[WAt]${indent}Objeto atual: ${JSON.stringify(obj, null, 2)}`);
 
   if (typeof obj !== "object" || obj === null) {
     console.warn(
@@ -22,7 +22,7 @@ function encontrarChave(obj, key, defaultValue = null, depth = 0) {
   // Verifica se o objeto é uma string e tenta convertê-la em JSON
   if (typeof obj === "string") {
     try {
-      console.log(`${indent}String detectada, tentando parsear como JSON.`);
+      console.log(`[WAt]${indent}String detectada, tentando parsear como JSON.`);
       const parsedObj = JSON.parse(obj);
       console.log(
         `${indent}String convertida para objeto: ${JSON.stringify(
@@ -66,14 +66,14 @@ function encontrarChave(obj, key, defaultValue = null, depth = 0) {
   // Percorre as chaves do objeto e busca recursivamente
   for (const k in obj) {
     if (obj[k] && typeof obj[k] === "object") {
-      console.log(`${indent}Explorando subobjeto na chave "${k}"...`);
+      console.log(`[WAt]${indent}Explorando subobjeto na chave "${k}"...`);
       const resultado = encontrarChave(obj[k], key, defaultValue, depth + 1);
       if (resultado !== null) {
-        console.log(`${indent}Chave "${key}" encontrada em subobjeto.`);
+        console.log(`[WAt]${indent}Chave "${key}" encontrada em subobjeto.`);
         return resultado;
       }
     } else {
-      console.log(`${indent}Chave "${k}" ignorada (não é um objeto).`);
+      console.log(`[WAt]${indent}Chave "${k}" ignorada (não é um objeto).`);
     }
   }
 

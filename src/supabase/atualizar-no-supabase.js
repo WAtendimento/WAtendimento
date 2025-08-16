@@ -85,7 +85,7 @@ async function atualizarNoSupabase(
 
         return dataAtualizada || { message: "Dados atualizados com sucesso!" };
       } else {
-        console.log(">>> Nenhum registro encontrado para atualizar.");
+        console.log("[WAt][WAt] Nenhum registro encontrado para atualizar.");
       }
 
       return { message: "Nenhum registro encontrado para atualizar." };
@@ -112,7 +112,7 @@ async function atualizarNoSupabase(
           await consultaComVariacao;
 
         if (erroConsulta) {
-          console.error(`Erro ao verificar filtros: ${erroConsulta.message}`);
+          console.error(`[WAt]Erro ao verificar filtros: ${erroConsulta.message}`);
           throw erroConsulta;
         }
 
@@ -156,7 +156,7 @@ async function atualizarNoSupabase(
     const { data, error } = await query;
 
     if (error) {
-      console.error(`Erro ao atualizar dados no Supabase: ${error.message}`);
+      console.error(`[WAt]Erro ao atualizar dados no Supabase: ${error.message}`);
       throw new Error(`Erro ao atualizar dados no Supabase: ${error.message}`);
     }
 
@@ -186,5 +186,5 @@ module.exports = { atualizarNoSupabase };
 // };
 
 // atualizarNoSupabase("maxplural_contatos", filtros, dadosAtualizados, true)
-//   // .then((resultado) => console.log("Resultado:", resultado))
-//   .catch((erro) => console.error("Erro:", erro));
+//   // .then((resultado) => console.log("[WAt]Resultado:", resultado))
+//   .catch((erro) => console.error("[WAt]Erro:", erro));

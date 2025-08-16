@@ -61,10 +61,10 @@ async function verificaEEnviaMensagem({
     telefone: telefoneContato,
   };
 
-  // console.log('mensagem', mensagem);
-  // console.log('nomeContato', nomeContato);
-  // console.log('dadosFornecidos', dadosFornecidos);
-  // console.log('telefoneContato', telefoneContato);
+  // console.log('[WAt]mensagem', mensagem);
+  // console.log('[WAt]nomeContato', nomeContato);
+  // console.log('[WAt]dadosFornecidos', dadosFornecidos);
+  // console.log('[WAt]telefoneContato', telefoneContato);
 
   logger.add(`mensagem: ${mensagem} nomePessoa: ${nomeContato} dadosFornecidos: ${dadosFornecidos}`);
   const filtrosFormatados = Object.entries(filtrosComTelefone).reduce((acc, [chave, valor]) => {
@@ -74,14 +74,14 @@ async function verificaEEnviaMensagem({
 
   let filtros = Object.assign(telefone, filtrosFormatados);
 
-  // console.log('filtros', filtros);
+  // console.log('[WAt]filtros', filtros);
 
   try {
     if (!contatoEncerrado) {
-      // console.log('Antes de adquirir lock');
+      // console.log('[WAt]Antes de adquirir lock');
       const lockAdquirido = await tentaAdquirirLock(supabase, telefoneContato, tabela, filtrosAdicionaisContato.id_chip);
 
-      // console.log('logAdquirido = ', lockAdquirido);
+      // console.log('[WAt]logAdquirido = ', lockAdquirido);
 
       if (lockAdquirido) {
         await atualizarNoSupabase(
@@ -93,10 +93,10 @@ async function verificaEEnviaMensagem({
         );
 
         logger.add(`Criando Buffer com 1ª mensagem: ${mensagem}`);
-        // console.log(`Criando buffer com a 1a msg:  ${mensagem}`);
+        // console.log(`[WAt]Criando buffer com a 1a msg:  ${mensagem}`);
         mensagensAcumuladas.add(mensagem);
         logger.add('Delay de 20 segundos para BUFFER');
-        // console.log('Delay de 20 segundos para BUFFER');
+        // console.log('[WAt]Delay de 20 segundos para BUFFER');
         await new Promise((resolve) => setTimeout(resolve, 20000));
 
         mensagem = mensagensAcumuladas.finish();
@@ -117,7 +117,7 @@ async function verificaEEnviaMensagem({
         });
 
         logger.add('Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
-        // console.log('Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
+        // console.log('[WAt]Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
         await atualizarNoSupabase(
           supabase,
           tabela,
@@ -128,14 +128,14 @@ async function verificaEEnviaMensagem({
 
         await liberaLock(supabase, tabela, telefoneContato, filtrosAdicionaisContato.id_chip);
 
-        // console.log('Lock liberado');
+        // console.log('[WAt]Lock liberado');
 
         return resultado;
       } else {
         // Lock não adquirido — interação em andamento
         await new Promise((resolve) => setTimeout(resolve, 1000));
         logger.add(`Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
-        // console.log(`Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
+        // console.log(`[WAt]Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
         mensagensAcumuladas.add(mensagem);
         return {
           sucesso: true,
@@ -154,7 +154,7 @@ async function verificaEEnviaMensagem({
     }
   } catch (erro) {
     logger.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
-    // console.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
+    // console.error('[WAt]Erro inesperado na função verificaEEnviaMensagem:', erro);
 
     // Em caso de erro, tenta liberar o lock (por segurança)
     await liberaLock(tabela, telefoneContato, );
@@ -213,7 +213,7 @@ async function controleDeThreads({
         criouThread = true;
       } catch (erro) {
         logger.error('Erro ao criar thread e enviar mensagem:', erro);
-        console.error('Erro ao criar thread e enviar mensagem:', erro);
+        console.error('[WAt]Erro ao criar thread e enviar mensagem:', erro);
         return {
           sucesso: false,
           mensagem: 'Erro ao criar thread',
@@ -243,7 +243,7 @@ async function controleDeThreads({
         criouThread = false;
       } catch (erro) {
         logger.error('Erro ao enviar mensagem na thread existente:', erro);
-        console.error('Erro ao enviar mensagem na thread existente:', erro);
+        console.error('[WAt]Erro ao enviar mensagem na thread existente:', erro);
         return {
           sucesso: false,
           mensagem: 'Erro ao enviar mensagem',
@@ -267,7 +267,7 @@ async function controleDeThreads({
       let result = await buscaUltimaMensagemThread({ data });
 
       if (!result || typeof result !== 'object') {
-        console.warn('Resultado inesperado de buscaUltimaMensagemThread', result);
+        console.warn('[WAt]Resultado inesperado de buscaUltimaMensagemThread', result);
       }
 
       result.resumo = result.resumo || '';
@@ -282,7 +282,7 @@ async function controleDeThreads({
       return { sucesso: true, contatoRetornoIA: result }; // Sempre retornar a estrutura padrão
     } catch (error) {
       logger.error('Erro ao executar buscaUltimaMensagemThread:', error);
-      console.error('Erro ao executar buscaUltimaMensagemThread:', error);
+      console.error('[WAt]Erro ao executar buscaUltimaMensagemThread:', error);
       return {
         sucesso: false,
         mensagem: 'Erro ao buscar última mensagem',
@@ -291,7 +291,7 @@ async function controleDeThreads({
     }
   } catch (erro) {
     logger.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
-    console.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
+    console.error('[WAt]Erro inesperado na função verificaEEnviaMensagem:', erro);
     return {
       sucesso: false,
       mensagem: 'Erro inesperado',

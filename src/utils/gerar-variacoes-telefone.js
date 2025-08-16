@@ -11,7 +11,7 @@ function gerarVariacoesDeTelefone(telefone) {
   // Lógica para adicionar variações com base no tamanho do número
   const adicionarVariacoes = (descricao, numero) => {
     variacoes.add(numero);
-    //console.log(`Variação gerada (${descricao}): ${numero}`);
+    //console.log(`[WAt]Variação gerada (${descricao}): ${numero}`);
   };
 
   if (telefone.length === 13) {
@@ -65,7 +65,7 @@ function gerarVariacoesDeTelefone(telefone) {
   }
 
   // Exibe todas as variações no final
-  //console.log("Todas as variações geradas:", Array.from(variacoes));
+  //console.log("[WAt]Todas as variações geradas:", Array.from(variacoes));
   return Array.from(variacoes);
 }
 

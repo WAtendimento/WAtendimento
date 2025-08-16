@@ -13,7 +13,7 @@ async function tentaAdquirirLock(supabase,telefoneContato, tabela, id_chip) {
   });
 
   if (error) {
-    console.error('[ERRO] ao chamar adquirir_lock:', error);
+    console.error('[WAt][ERRO] ao chamar adquirir_lock:', error);
     return false;
   }
 
@@ -29,7 +29,7 @@ async function liberaLock(supabase,tabela, telefoneContato, id_chip) {
   });
 
   if (error) {
-    console.error('[ERRO] ao chamar liberar_lock:', error);
+    console.error('[WAt][ERRO] ao chamar liberar_lock:', error);
     return false;
   }
   return true;

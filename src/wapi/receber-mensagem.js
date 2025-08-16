@@ -28,50 +28,50 @@ const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
 
 async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, supabase, integraBot) {
 
-  console.log('Iniciando processamento da mensagem recebida...');
-  console.log('JSON recebido:', JSON.stringify(json, null, 2));
-  console.log('Credenciais OpenAI:', JSON.stringify(credenciaisOpenAi, null, 2));
-  console.log('Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
+  console.log('[WAt]Iniciando processamento da mensagem recebida...');
+  // console.log('[WAt]JSON recebido:', JSON.stringify(json, null, 2));
+  // console.log('[WAt]Credenciais OpenAI:', JSON.stringify(credenciaisOpenAi, null, 2));
+  // console.log('[WAt]Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
  
   let dadosExtraidos = null;
 
   try {
     // Verificar se o JSON é válido
     if (!json || typeof json !== 'object') {
-      console.error('Entrada inválida: JSON ausente ou mal formatado.');
+      console.error('[WAt]Entrada inválida: JSON ausente ou mal formatado.');
       throw new Error('Entrada inválida: JSON ausente ou mal formatado.');
     }
 
     if (json.fromApi === true) {
-      console.log('Mensagem enviada pela API. Nenhum processamento será feito.');
+      console.log('[WAt]Mensagem enviada pela API. Nenhum processamento será feito.');
       return null;
     }
 
     // Verificar se a mensagem é de um grupo
     if (json.isGroup === true) {
-      console.log('Mensagem de grupo detectada. Nenhum processamento será feito.');
+      console.log('[WAt]Mensagem de grupo detectada. Nenhum processamento será feito.');
       return null;
     }
 
     // Extrair dados relevantes do JSON
     dadosExtraidos = extrairDados(json);
-    console.log('Mensagem recebida e extraída:', dadosExtraidos);
+    // console.log('[WAt]Mensagem recebida e extraída:', dadosExtraidos);
     
     // Buscando credenciais WAPI do chip
     const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone, supabase, credenciaisSupabase);
-    console.log('CredenciaisWAPI:', credenciaisWAPI);
+    // console.log('[WAt]CredenciaisWAPI:', credenciaisWAPI);
 
     // TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
 
     // Interpretar a mensagem recebida
-    console.log('Interpretando mensagem...');
+    // console.log('[WAt]Interpretando mensagem...');
     let mensagemCorreta = await interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisOpenAi);
     if (!mensagemCorreta) {
-      console.log('Nenhuma mensagem interpretada. Encerrando processamento.');
+      console.log('[WAt]Nenhuma mensagem interpretada. Encerrando processamento.');
       return null;
     }
 
-    console.log('Mensagem interpretada:', mensagemCorreta);
+    // console.log('[WAt]Mensagem interpretada:', mensagemCorreta);
 
     // Formatar a mensagem para envio
     const mensagemFormatada = await mensagemDeEntrada(mensagemCorreta);
@@ -84,7 +84,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
       credenciaisSupabase,
     });
 
-    console.log("Chamando integraBot com funções do cliente...");
+    console.log("[WAt]Chamando integraBot com funções do cliente...");
     const resultado = await integraBot(
       mensagemFormatada,
       dadosExtraidos.pushName,
@@ -94,12 +94,12 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
       credenciaisSupabase,
       supabase
     );
-    console.log("Resultado da chamada ao integraBot:", resultado);
+    console.log("[WAt]Resultado da chamada ao integraBot:", resultado);
 
     return dadosExtraidos;
   } catch (error) {
-    console.error('Erro ao processar o JSON:', error.message, dadosExtraidos.connectedPhone);
-    console.error('Detalhes do erro:', error.stack);
+    console.error('[WAt]Erro ao processar o JSON:', error.message, dadosExtraidos.connectedPhone);
+    console.error('[WAt]Detalhes do erro:', error.stack);
     return null;
   }
 }

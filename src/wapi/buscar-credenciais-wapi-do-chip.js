@@ -19,10 +19,10 @@ async function buscarCredenciaisWAPIdoChip(telefone, supabase, credenciaisSupaba
       camposSelecionados
     );
 
-    console.log("Resultado da consulta ao chip:", resultadoConsultaChip);
+    // console.log("[WAt]Resultado da consulta ao chip:", resultadoConsultaChip);
 
     if (!resultadoConsultaChip || resultadoConsultaChip.length === 0) {
-      console.log("Nenhum registro encontrado para o telefone informado.");
+      console.log("[WAt]Nenhum registro encontrado para o telefone informado.");
       throw new Error("Nenhum registro encontrado para o telefone informado.");
     }
 
@@ -33,7 +33,7 @@ async function buscarCredenciaisWAPIdoChip(telefone, supabase, credenciaisSupaba
       token: chip.new_token,
     };
 
-    console.log("> Credenciais WAPI do chip:", credenciais);
+    // console.log("[WAt]> Credenciais WAPI do chip:", credenciais);
 
     return credenciais;
     
@@ -46,8 +46,8 @@ module.exports = { buscarCredenciaisWAPIdoChip };
 //   try {
 //     const telefone = "558194747345"; // Substitua pelo telefone desejado
 //     const credenciais = await buscarCredenciaisWAPIdoChip(telefone);
-//     console.log("Credenciais WAPI do chip:", credenciais);
+//     console.log("[WAt]Credenciais WAPI do chip:", credenciais);
 //   } catch (error) {
-//     console.error("Erro ao buscar credenciais WAPI do chip:", error.message);
+//     console.error("[WAt]Erro ao buscar credenciais WAPI do chip:", error.message);
 //   }
 // })();

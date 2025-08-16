@@ -50,7 +50,7 @@ async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = 
         }
       });
 
-      //console.log("em buscar no supabase", variacoes);
+      //console.log("[WAt]em buscar no supabase", variacoes);
       for (const variacaoTelefone of variacoes) {
         nomeFiltro.forEach((filtro) => {
           if (filtros[filtro]) {

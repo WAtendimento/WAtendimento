@@ -36,8 +36,8 @@ module.exports = { mensagemDeEntrada, mensagemDeSaida };
 //       },
 //     });
 
-//     console.log("Resultado:", result);
+//     console.log("[WAt]Resultado:", result);
 //   } catch (error) {
-//     console.error("Erro ao executar a função:", error.message);
+//     console.error("[WAt]Erro ao executar a função:", error.message);
 //   }
 // })();

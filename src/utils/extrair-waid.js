@@ -4,17 +4,17 @@ function extrairWaid(vcard) {
     const regex = /TEL;.*waid=(\d+):/;
     const match = vcard.match(regex);
     if (!vcard) {
-      console.log("vcard null <<<<<");
+      console.log("[WAt]vcard null <<<<<");
       return;
     }
     if (match && match[1]) {
-      console.log("waid extraído:", match[1]);
+      console.log("[WAt]waid extraído:", match[1]);
       return match[1]; // Retorna o número waid extraído
     } else {
       throw new Error("waid não encontrado no vCard.");
     }
   } catch (error) {
-    console.error("Erro ao extrair waid:", error.message);
+    console.error("[WAt]Erro ao extrair waid:", error.message);
     return null;
   }
 }
