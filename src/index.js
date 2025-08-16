@@ -12,6 +12,7 @@ module.exports = {
   delay: require("./utils/delay").delay,
   criaLogger: require("./utils/logger").criaLogger,
   mensagemDeSaida: require("./utils/formatador-mensagens").mensagemDeSaida,
+  gerarTimestampBrasil: require("./utils/gerar-timestamp-brasil").gerarTimestampBrasil,
   
   // Supabase - Supabase
   insertOuUpsert: require("./supabase/inserir-ou-atualizar-no-supabase").insertOuUpsert,
