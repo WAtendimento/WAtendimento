@@ -28,6 +28,11 @@ const { criarClienteSupabase } = require('../supabase/criar-cliente-supabase');
  */
 
 async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, integraBot) {
+
+  console.log('Iniciando processamento da mensagem recebida...');
+  console.log('JSON recebido:', JSON.stringify(json, null, 2));
+  console.log('Credenciais OpenAI:', JSON.stringify(credenciaisOpenAi, null, 2));
+  console.log('Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
  
   let dadosExtraidos = null;
   const supabase = criarClienteSupabase(credenciaisSupabase);
