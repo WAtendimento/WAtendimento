@@ -1,4 +1,5 @@
 
+
 module.exports = {
   // WAPI - WhatsApp Web API
   receberMensagem: require("./wapi/receber-mensagem").receberMensagem,
@@ -14,6 +15,8 @@ module.exports = {
   mensagemDeSaida: require("./utils/formatador-mensagens").mensagemDeSaida,
   gerarTimestampBrasil: require("./utils/gerar-timestamp-brasil").gerarTimestampBrasil,
   existeDiferencaDeDias: require("./utils/existe-diferenca-dias").existeDiferencaDeDias,
+  formatarTelefone: require("./utils/formatar-telefone").formatarTelefone,
+  gerarVariacoesDeTelefone: require("./utils/gerar-variacoes-telefone").gerarVariacoesDeTelefone,
   
   // Supabase - Supabase
   insertOuUpsert: require("./supabase/inserir-ou-atualizar-no-supabase").insertOuUpsert,
