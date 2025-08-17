@@ -7,6 +7,7 @@ module.exports = {
   buscarCredenciaisWAPIdoChip: require("./wapi/buscar-credenciais-wapi-do-chip").buscarCredenciaisWAPIdoChip,
   enviarMensagemAPI: require("./wapi/enviar-mensagem-api").enviarMensagemAPI,
   verificaEEnviaMensagem: require("./wapi/verificar-e-enviar-mensagem").verificaEEnviaMensagem,
+  controleExecucao: require("./wapi/controlador-estado-execucao").controleExecucao,
 
   // Utilitários - Utils
   gerarData: require("./utils/gerar-data").gerarData,
@@ -18,6 +19,7 @@ module.exports = {
   formatarTelefone: require("./utils/formatar-telefone").formatarTelefone,
   removerNoveDoTelefone: require("./utils/formatar-telefone").removerNoveDoTelefone,
   gerarVariacoesDeTelefone: require("./utils/gerar-variacoes-telefone").gerarVariacoesDeTelefone,
+  temLatitudeLongitude: require("./utils/comparar-localizacoes").temLatitudeLongitude,
   
   // Supabase - Supabase
   insertOuUpsert: require("./supabase/inserir-ou-atualizar-no-supabase").insertOuUpsert,
