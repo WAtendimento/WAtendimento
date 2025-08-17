@@ -13,6 +13,7 @@ module.exports = {
   criaLogger: require("./utils/logger").criaLogger,
   mensagemDeSaida: require("./utils/formatador-mensagens").mensagemDeSaida,
   gerarTimestampBrasil: require("./utils/gerar-timestamp-brasil").gerarTimestampBrasil,
+  existeDiferencaDeDias: require("./utils/existe-diferenca-dias").existeDiferencaDeDias,
   
   // Supabase - Supabase
   insertOuUpsert: require("./supabase/inserir-ou-atualizar-no-supabase").insertOuUpsert,
