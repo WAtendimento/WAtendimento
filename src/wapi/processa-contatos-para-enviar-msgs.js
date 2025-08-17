@@ -17,7 +17,8 @@ const { controleExecucao } = require('./controlador-estado-execucao');
  * @param {Object} credenciaisSupabase - Credenciais do Supabase para acessar a tabela de contatos
  * @returns {Promise<Object>} - Retorna um objeto com o total de contatos carregados, sucessos e falhas 
  */
-async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase, supabase
+async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase, supabase,
+  idMensagem
 ) {
   
   // TO-DO: Buscar o telefone do responsável pelo banco
@@ -73,10 +74,12 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
 
       // Ajustar a query com base no parâmetro `buscarSomenteSemMensagem`
       let baseQuery = supabase
-        .from(credenciaisSupabase.table_data.table_contatos)
+        .from(supabaseCredentials.table_data.table_contatos)
         .select('*')
         .order('id_cliente', { ascending: true })
-        .range(from, to);
+        .range(from, to)
+        .neq('id_mensagem_enviada', idMensagem)
+        .not('telefone', 'is', null);
 
       // Condições para o comportamento padrão
       console.log('[WAt]|| Envio em massa: Enviando mensagem para contatos que ainda nao receberam mensagem alguma');
@@ -123,13 +126,8 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
         while (!mensagemEnviada && resultadoConsultaChip.length > 0) {
           if (!controleExecucao.getEstado()) {
             console.log('[WAt]|| Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.');
-            await enviarMensagemAPI(
-              credenciaisWAPI,
-              telefoneResponsavel,
-              '|| Envio em massa: 🔴 O envio foi pausado. Pode recomeçar.',
-              'Pause nos envios - enviando para responsável',
-              null
-            );
+            await notificarPausa();
+            
             return { status: 'Pausado pelo usuário' };
           }
           const credenciaisChipAtual = resultadoConsultaChip[indiceCredencial];
@@ -173,6 +171,12 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           if (sucesso) {
             totalSucessos++;
             indiceCredencial = (indiceCredencial + 1) % resultadoConsultaChip.length;
+
+            await atualizarStatusEnvio({
+              idCliente: mensagem.id_cliente,
+              idMensagem: idMensagem, // ou o que vier da WAPI
+              supabase,
+            });
           } else {
             totalFalhas++;
           }
@@ -183,13 +187,22 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
         console.log(`[WAt]|| Envio em massa: Total de sucessos acumulados: ${totalSucessos}`);
         console.log(`[WAt]|| Envio em massa: Total de falhas acumuladas: ${totalFalhas}`);
 
+         if (totalSucessos >= quantidadeCarregada) {
+          console.log('##ENVIO EM MASSA: Quantidade carregada máxima atingida. Interrompendo o envio.');
+          break;
+        }
+
         if (indiceCredencial === 0) {
-          console.log('[WAt]|| Envio em massa: Aguardando Delay para recomeçar os envios');
-          let delay = Math.random() * (3000 - 1000) + 1000;
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          console.log(`|| Envio em massa: Aguardando Delay para recomeçar os envios`);
+          let delay = Math.random() * (20000 - 30000) + 30000;
+          console.log(`|| Envio em massa: Delay iniciado por ${Math.round(delay / 1000)} segundos`);
+          const resultadoDelay = await delayComVerificacao(delay);
+          if (resultadoDelay?.status === 'Pausado durante o delay') {
+            return resultadoDelay; // encerra de forma limpa e imediata
+          }
         }
         if (totalFalhas >= 20 && totalSucessos == 0) {
-          console.log('[WAt]|| Envio em massa: Número de falhas consecutivas atingiu 5. Interrompendo o envio.');
+          console.log('|| Envio em massa: Número de falhas consecutivas atingiu 5. Interrompendo o envio.');
           return {
             totalCarregados,
             sucessos: totalSucessos,
@@ -198,6 +211,10 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
         }
       }
 
+      if (totalSucessos >= maxResults) {
+        console.log('##ENVIO EM MASSA: Limite de sucessos atingido. Interrompendo o envio.');
+        break;
+      }
       // Incrementar o offset para a próxima página
       offset += pageSize;
     }
@@ -233,6 +250,59 @@ function gerarMensagensParaEnvio(contatos, mensagemBase) {
   console.log('[WAt]|| Envio em massa: Mensagens geradas para todos os contatos.');
   return { contacts };
 }
+const atualizarStatusEnvio = async ({ idCliente, idMensagem, supabase }) => {
+  if (!idCliente || !idMensagem || !supabase) {
+    console.warn('⚠️ Dados insuficientes para atualizar status de envio.');
+    return;
+  }
+
+  const { error } = await supabase
+    .from(supabaseCredentials.table_data.table_contatos)
+    .update({
+      id_mensagem_enviada: idMensagem,
+    })
+    .eq('id_cliente', idCliente);
+
+  if (error) {
+    console.error(`Erro ao atualizar status do id_cliente ${idCliente}:`, error.message);
+  } else {
+    console.log(`Status de envio atualizado para o id_cliente ${idCliente}`);
+  }
+};
+
+
+
+async function notificarPausa() {
+  if (!envioPausadoNotificado) {
+    envioPausadoNotificado = true;
+    await enviarMensagemAPI(
+      credenciaisWAPI.credenciaisWAPI,
+      '5581996948615',
+      `##ENVIO EM MASSA: 🔴 O envio foi pausado. Pode recomeçar.`,
+      'Pause nos envios - enviando para Livia',
+      null
+    );
+  }
+}
+
+async function delayComVerificacao(tempoTotalMs, intervaloMs = 5000) {
+  const inicio = Date.now();
+
+  while (Date.now() - inicio < tempoTotalMs) {
+    // Verifica se o serviço foi pausado durante o delay
+    if (!controleExecucao.getEstado()) {
+      console.log(`##ENVIO EM MASSA: Serviço pausado durante o delay.`);
+
+      await notificarPausa();
+
+      return { status: 'Pausado durante o delay' };
+    }
+
+    // Aguarda um pequeno intervalo antes de checar de novo
+    await new Promise((resolve) => setTimeout(resolve, intervaloMs));
+  }
+}
+
 
 module.exports = {
   processarMensagensEmMassa
