@@ -87,7 +87,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
 
       const { data, error } = await baseQuery;
 
-      console.log(`[WAt]|| Depuração: Contatos carregados do Supabase:`, data);
+      //console.log(`[WAt]|| Depuração: Contatos carregados do Supabase:`, data);
 
       if (error) {
         console.error('[WAt]Erro na consulta ao Supabase:', error.message);
@@ -122,7 +122,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
 
         while (!mensagemEnviada && resultadoConsultaChip.length > 0) {
           if (!controleExecucao.getEstado()) {
-            console.log('[WAt]|| Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.', credenciaisWAPI);
+            console.log('[WAt]|| Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.');
             await enviarMensagemAPI(
               credenciaisWAPI,
               telefoneResponsavel,
