@@ -16,6 +16,7 @@ module.exports = {
   gerarTimestampBrasil: require("./utils/gerar-timestamp-brasil").gerarTimestampBrasil,
   existeDiferencaDeDias: require("./utils/existe-diferenca-dias").existeDiferencaDeDias,
   formatarTelefone: require("./utils/formatar-telefone").formatarTelefone,
+  removerNoveDoTelefone: require("./utils/formatar-telefone").removerNoveDoTelefone,
   gerarVariacoesDeTelefone: require("./utils/gerar-variacoes-telefone").gerarVariacoesDeTelefone,
   
   // Supabase - Supabase
