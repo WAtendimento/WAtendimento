@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { criaLogger } = require("../utils/logger");
-const { converterParaMp3Base64 } = require('../utils/converter-mp3-para-base64_do_glide');
+const { converterParaMp3Base64 } = require('../utils/converter-mp3-para-base64-do-glide');
 
 /**
  * Função para enviar mensagem via API WAPI.

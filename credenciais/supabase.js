@@ -10,6 +10,12 @@ const supabaseCredentials = {
     table_metas: "maxplural_metas", // Nome da tabela de metas
     table_atividades: "maxplural_valores_atividades", // Nome da tabela de atividades
   },
+  chat: {
+    url: 'https://oasvdwczwlqnggmcdnlg.supabase.co',
+    token:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hc3Zkd2N6d2xxbmdnbWNkbmxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ0OTAxMDIsImV4cCI6MjA2MDA2NjEwMn0.zoty7QrMjXTa66ewxhGVxESiwApRmUO8O6Ct5U0Y40c', // Token do Supabase
+    table: 'chats_watendimento',
+  },
 };
 
 

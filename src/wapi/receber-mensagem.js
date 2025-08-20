@@ -4,6 +4,7 @@
 const { urlParaBase64 } = require('../utils/converter-url-para-base64');
 const { mensagemDeEntrada } = require('../utils/formatador-mensagens');
 const { extrairContactCardNumber } = require('../utils/extrair-numero-contato');
+const { buscarChip } = require('../utils/buscar-chip');
 /**
  * Funções de processamento de imagem
  */
@@ -20,13 +21,19 @@ const { baixarAudioETranscrever, baixarMedia } = require('./baixar-media-wapi');
 const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
 
 /**
+ * Funções de chat
+ */
+const { tratarEnviosGlide } = require('../chat/tratar-envios-glide');
+const { atualizarJSONChat } = require('../chat/atualizar-json-chat');
+
+/**
  * Processa e extrai dados de uma mensagem JSON recebida pela WAPI.
  * @param {Object} json - Objeto JSON enviado pelo webhook da WAPI.
  * @param {Object} contexto - Objeto de contexto com credenciais e função integra-bot de cada projeto.
  * @returns {Object|null} - Dados extraídos da mensagem ou null em caso de erro.
  */
 
-async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, supabase, integraBot) {
+async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, supabase, integraBot, bot) {
 
   console.log('[WAt]Iniciando processamento da mensagem recebida...');
   // console.log('[WAt]JSON recebido:', JSON.stringify(json, null, 2));
@@ -84,6 +91,30 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
       credenciaisSupabase,
     });
 
+    // Buscar chip
+    const chip = await buscarChip(
+      credenciaisSupabase.table_data.table_chips,
+      supabase,
+      dadosExtraidos.connectedPhone);
+
+    console.log('[WAt]Chip encontrado:', chip);
+    // Tratar mensagens via Glide
+    tratarEnviosGlide(dadosExtraidos, chip);
+    
+    // Atualizar JSON do chat
+    console.log('[WAt]Atualizando JSON do chat...');
+    await atualizarJSONChat({
+      id_chip: chip.id_chip,
+      numeroContato: dadosExtraidos.usuarioNumero,
+      connectedPhone: dadosExtraidos.connectedPhone,
+      fromMe: dadosExtraidos.fromMe,
+      nomeContato: dadosExtraidos.pushName,
+      mensagem: ehAudio + mensagemCorreta,
+      tabelaContatos: credenciaisSupabase.table_data.table_contatos,
+      bot: bot,
+    });
+    
+    // Enviar mensagem para o integraBot
     console.log("[WAt]Chamando integraBot com funções do cliente...");
     const resultado = await integraBot(
       mensagemFormatada,
