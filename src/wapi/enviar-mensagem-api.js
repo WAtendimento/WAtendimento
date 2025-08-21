@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { criaLogger } = require("../utils/logger");
 const { dividirString } = require("../utils/dividir-string");
+const { atualizarJSONChat } = require("../chat/atualizar-json-chat");
 
 /**
  * Função para enviar mensagem via API WAPI.
@@ -20,7 +21,8 @@ async function enviarMensagemAPI(
   message,
   name,
   mensagemDoUsuario,
-  multipleMessages = false
+  multipleMessages = false,
+  contextoChat = null //id_chip, connectedPhone, fromMe, tabelaContato, bot
 ) {
   const { instance_id, token } = credenciais;
   const logger = criaLogger(number);
@@ -58,8 +60,19 @@ async function enviarMensagemAPI(
         },
       });
 
-      // logger.add("Mensagem enviada com sucesso:", msg);
-      // console.log("[WAt]Mensagem enviada com sucesso:", msg);
+      // Atualizar o JSON do chat
+      if (contextoChat) {
+        await atualizarJSONChat({
+          id_chip: contextoChat.id_chip,
+          numeroContato: number,
+          connectedPhone: contextoChat.connectedPhone,
+          fromMe: contextoChat.fromMe,
+          nomeContato: name,
+          mensagem: message,
+          tabelaContato: contextoChat.tabelaContato,
+          bot: contextoChat.bot,
+        });
+      }
 
       logger.result(
         `"${msg}"\n- Destinatário: ${name}\n- Em resposta a: "${mensagemDoUsuario}".`

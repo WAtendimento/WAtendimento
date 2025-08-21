@@ -5,7 +5,7 @@ const { criaLogger } = require('../utils/logger');
 
 const logger = criaLogger('mensagemEmMassa');
 
-async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSupabase) {
+async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSupabase, bot) {
   if (!json || typeof json !== 'object' || !json.mensagensGeradas || !Array.isArray(json.mensagensGeradas.contacts)) {
     throw new Error('JSON inválido ou mal formatado.');
   }
@@ -77,13 +77,22 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
         id_cliente
       );
 
+      let contextoChat = {
+        id_chip: credenciais.id_chip,
+        connectedPhone: credenciais.connected_phone,
+        fromMe: true,
+        tabelaContato: credenciaisSupabase.table_data.table_contatos,
+        bot: bot,
+      };
+
       let resultadoEnvio = await enviarMensagemAPI(
         credenciaisChip,
         formattedNumber,
         message,
         '|| Envio em massa: ',
         '', // mensagemDoUsuario (pode ser string vazia)
-        true // multipleMessages = true => envia por linha
+        true, // multipleMessages = true => envia por linha,
+        contextoChat
       );
 
       resultadoEnvio = Array.isArray(resultadoEnvio) ? resultadoEnvio[resultadoEnvio.length - 1] : resultadoEnvio;

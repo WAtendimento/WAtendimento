@@ -22,7 +22,9 @@ async function enviarMensagemPorTipo({ credenciais, tipo, telefone, conteudo }) 
         conteudo,
         '', // nome omitido
         '', // mensagem original omitida
-        false
+        false,
+        null // contextoChat omitido, pois essa função só é chamada quando chamada
+             // tratarEnviosGlide no receberMensagem e lá, já atualizamos o chat
       );
 
     case 'audio':

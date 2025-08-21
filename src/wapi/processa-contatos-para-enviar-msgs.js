@@ -18,7 +18,7 @@ const { controleExecucao } = require('./controlador-estado-execucao');
  * @returns {Promise<Object>} - Retorna um objeto com o total de contatos carregados, sucessos e falhas 
  */
 async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase, supabase,
-  idMensagem
+  idMensagem, bot
 ) {
   
   // TO-DO: Buscar o telefone do responsável pelo banco
@@ -132,7 +132,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           }
           const credenciaisChipAtual = resultadoConsultaChip[indiceCredencial];
 
-          const resultados = await enviaMensagensEmMassa({ mensagensGeradas: { contacts: [mensagem] } }, credenciaisChipAtual, supabase, credenciaisSupabase);
+          const resultados = await enviaMensagensEmMassa({ mensagensGeradas: { contacts: [mensagem] } }, credenciaisChipAtual, supabase, credenciaisSupabase, bot);
 
           console.log('[WAt]|| Envio em massa: ', resultados);
 
@@ -280,7 +280,8 @@ async function notificarPausa() {
       '5581996948615',
       `##ENVIO EM MASSA: 🔴 O envio foi pausado. Pode recomeçar.`,
       'Pause nos envios - enviando para Livia',
-      null
+      null,
+      null // não atualizamos chat pois é uma notificação interna
     );
   }
 }
