@@ -100,6 +100,9 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     console.log('[WAt]Chip encontrado:', chip);
     // Tratar mensagens via Glide
     tratarEnviosGlide(dadosExtraidos, chip);
+
+    // Verificar se a mensagem é um áudio
+    const ehAudio = dadosExtraidos.audioMessage ? '[Áudio] ' : '';
     
     // Atualizar JSON do chat
     console.log('[WAt]Atualizando JSON do chat...');
