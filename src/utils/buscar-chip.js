@@ -14,7 +14,7 @@ async function buscarChip(tabela, supabase, connectedPhone) {
     };
     const camposSelecionados = ['*'];
 
-    const resultadoConsulta = await buscarNoSupabase(supabase, tabela, filtros, camposSelecionados);
+    const resultadoConsulta = await buscarNoSupabase(supabase, tabela, filtros, camposSelecionados, true);
 
     if (!resultadoConsulta || resultadoConsulta.length === 0) {
       console.warn(`Nenhum chip encontrado na tabela "${tabela}" para o telefone ${connectedPhone}.`);
