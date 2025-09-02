@@ -36,9 +36,9 @@ const { atualizarJSONChat } = require('../chat/atualizar-json-chat');
 async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, supabase, integraBot, bot) {
 
   console.log('[WAt]Iniciando processamento da mensagem recebida...');
-  // console.log('[WAt]JSON recebido:', JSON.stringify(json, null, 2));
-  // console.log('[WAt]Credenciais OpenAI:', JSON.stringify(credenciaisOpenAi, null, 2));
-  // console.log('[WAt]Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
+  console.log('[WAt]JSON recebido:', JSON.stringify(json, null, 2));
+  console.log('[WAt]Credenciais OpenAI:', JSON.stringify(credenciaisOpenAi, null, 2));
+  console.log('[WAt]Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
  
   let dadosExtraidos = null;
 
@@ -62,23 +62,23 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
     // Extrair dados relevantes do JSON
     dadosExtraidos = extrairDados(json);
-    // console.log('[WAt]Mensagem recebida e extraída:', dadosExtraidos);
+    console.log('[WAt]Mensagem recebida e extraída:', dadosExtraidos);
     
     // Buscando credenciais WAPI do chip
     const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone, supabase, credenciaisSupabase);
-    // console.log('[WAt]CredenciaisWAPI:', credenciaisWAPI);
+    console.log('[WAt]CredenciaisWAPI:', credenciaisWAPI);
 
     // TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
 
     // Interpretar a mensagem recebida
-    // console.log('[WAt]Interpretando mensagem...');
+    console.log('[WAt]Interpretando mensagem...');
     let mensagemCorreta = await interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisOpenAi);
     if (!mensagemCorreta) {
       console.log('[WAt]Nenhuma mensagem interpretada. Encerrando processamento.');
       return null;
     }
 
-    // console.log('[WAt]Mensagem interpretada:', mensagemCorreta);
+    console.log('[WAt]Mensagem interpretada:', mensagemCorreta);
 
     // Formatar a mensagem para envio
     const mensagemFormatada = await mensagemDeEntrada(mensagemCorreta);
