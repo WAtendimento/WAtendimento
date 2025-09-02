@@ -22,7 +22,7 @@ async function buscarChip(tabela, supabase, connectedPhone) {
     }
 
     const chip = resultadoConsulta[0];
-    console.log(`✅ Chip encontrado: ID ${chip.id_loja}`);
+    console.log(`✅ Chip encontrado: ID ${chip.id_chip}`);
     return chip;
   } catch (error) {
     console.error('Erro ao buscar chip no Supabase:', error.message);
