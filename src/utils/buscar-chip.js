@@ -1,4 +1,4 @@
-const buscarNoSupabase = require('../supabase/buscar-no-supabase');
+const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
 
 /**
  * Busca informações do chip no Supabase pelo telefone conectado.
