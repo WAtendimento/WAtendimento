@@ -113,7 +113,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
       fromMe: dadosExtraidos.fromMe,
       nomeContato: dadosExtraidos.pushName,
       mensagem: ehAudio + mensagemCorreta,
-      tabelaContatos: credenciaisSupabase.table_data.table_contatos,
+      tabelaContato: credenciaisSupabase.table_data.table_contatos,
       bot: bot,
     });
     
