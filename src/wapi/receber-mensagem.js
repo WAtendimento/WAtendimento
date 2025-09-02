@@ -115,6 +115,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
       mensagem: ehAudio + mensagemCorreta,
       tabelaContato: credenciaisSupabase.table_data.table_contatos,
       bot: bot,
+      supabaseClient: supabase,
     });
     
     // Enviar mensagem para o integraBot

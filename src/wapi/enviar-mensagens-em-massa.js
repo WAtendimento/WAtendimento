@@ -83,6 +83,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
         fromMe: true,
         tabelaContato: credenciaisSupabase.table_data.table_contatos,
         bot: bot,
+        supabaseClient: supabase,
       };
 
       let resultadoEnvio = await enviarMensagemAPI(

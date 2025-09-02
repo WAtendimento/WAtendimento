@@ -7,7 +7,7 @@ const { supabaseCredentials } = require('../../credenciais/supabase');
 
 const supabase = createClient(supabaseCredentials.chat.url, supabaseCredentials.chat.token);
 
-async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromMe, nomeContato, mensagem, tabelaContato, bot }) {
+async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromMe, nomeContato, mensagem, tabelaContato, bot, supabaseClient }) {
   try {
     if (!id_chip || !numeroContato || !mensagem) return;
 
@@ -88,7 +88,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
 
     // Insere na tabela de contatos normal
     await atualizarNoSupabase(
-      supabase,
+      supabaseClient,
       tabelaContato,
       {
         telefone: telefoneCliente,

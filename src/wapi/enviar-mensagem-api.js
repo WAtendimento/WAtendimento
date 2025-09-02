@@ -22,7 +22,7 @@ async function enviarMensagemAPI(
   name,
   mensagemDoUsuario,
   multipleMessages = false,
-  contextoChat = null //id_chip, connectedPhone, fromMe, tabelaContato, bot
+  contextoChat = null //id_chip, connectedPhone, fromMe, tabelaContato, bot, supabaseClient
 ) {
   const { instance_id, token } = credenciais;
   const logger = criaLogger(number);
@@ -71,6 +71,7 @@ async function enviarMensagemAPI(
           mensagem: message,
           tabelaContato: contextoChat.tabelaContato,
           bot: contextoChat.bot,
+          supabaseClient: contextoChat.supabaseClient,
         });
       }
 
