@@ -66,6 +66,10 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
 
     // console.log('>>> CONVERSA DEPOIS:', jsonConversa);
 
+    console.log('[WAt] Registrando mensagem na conversa...');
+    // Insere ou atualiza na tabela de chats_watendimento
+    console.log('[WAt] Bot: ', bot);
+
     await insertOuUpsert(
       supabase,
       'chats_watendimento',
@@ -79,6 +83,8 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
       true,
       ['id_chip', 'telefone'], true
     );
+
+    console.log('[WAt] Tabela contato normal: ', tabelaContato);
 
     // Insere na tabela de contatos normal
     await atualizarNoSupabase(
