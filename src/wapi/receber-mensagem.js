@@ -36,9 +36,9 @@ const { atualizarJSONChat } = require('../chat/atualizar-json-chat');
 async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, supabase, integraBot, bot) {
 
   console.log('[WAt]Iniciando processamento da mensagem recebida...');
-  console.log('[WAt]JSON recebido:', JSON.stringify(json, null, 2));
-  console.log('[WAt]Credenciais OpenAI:', JSON.stringify(credenciaisOpenAi, null, 2));
-  console.log('[WAt]Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
+  // console.log('[WAt]JSON recebido:', JSON.stringify(json, null, 2));
+  // console.log('[WAt]Credenciais OpenAI:', JSON.stringify(credenciaisOpenAi, null, 2));
+  // console.log('[WAt]Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
  
   let dadosExtraidos = null;
 
@@ -66,7 +66,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     
     // Buscando credenciais WAPI do chip
     const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone, supabase, credenciaisSupabase);
-    console.log('[WAt]CredenciaisWAPI:', credenciaisWAPI);
+    // console.log('[WAt]CredenciaisWAPI:', credenciaisWAPI);
 
     // TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
 
