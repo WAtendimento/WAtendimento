@@ -97,7 +97,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
       {json_conversa: jsonConversa}
     );
 
-   // console.log('>>> ATUALIZOU JSON NO BANCO');
+   console.log('>>> ATUALIZOU JSON NO BANCO');
   } catch (error) {
     console.error('Erro ao registrar mensagem na conversa:', error.message);
   }

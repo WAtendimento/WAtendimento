@@ -60,6 +60,8 @@ async function enviarMensagemAPI(
         },
       });
 
+      console.log('[WAt] Contexto chat: ', contextoChat);
+
       // Atualizar o JSON do chat
       if (contextoChat) {
         await atualizarJSONChat({
