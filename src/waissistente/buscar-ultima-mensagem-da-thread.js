@@ -178,11 +178,11 @@ const processNewMessages = async ({
     const lastAssistantMessage = await fetchMessagesWithRetries();
 
     if (!lastAssistantMessage) {
-      console.log("[WAt][WAt] Nenhuma mensagem de 'assistant' encontrada.");
+      console.log("[WAt] Nenhuma mensagem de 'assistant' encontrada.");
       return { message: null, status: "no messages found" };
     }
 
-    console.log("[WAt][WAt] Resposta recebida da OpenAI");
+    console.log("[WAt] Resposta recebida da OpenAI");
 
     if (lastMessageId && lastMessageId === lastAssistantMessage.id) {
       logger.add(

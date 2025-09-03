@@ -56,19 +56,15 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
 
     if (clientes && clientes.length > 0 && Array.isArray(clientes[0].json_conversa)) {
       const jsonOriginal = JSON.parse(JSON.stringify(clientes[0].json_conversa));
-      //  console.log('>>> CONVERSA ANTES:', jsonOriginal);
 
       jsonConversa = [...jsonOriginal, novaMensagem];
     } else {
-      // console.log('>>> CONVERSA ANTES: []');
       jsonConversa = [novaMensagem];
     }
 
-    // console.log('>>> CONVERSA DEPOIS:', jsonConversa);
-
     console.log('[WAt] Registrando mensagem na conversa...');
     // Insere ou atualiza na tabela de chats_watendimento
-    console.log('[WAt] Bot: ', bot);
+    // console.log('[WAt] Bot: ', bot);
 
     await insertOuUpsert(
       supabase,
@@ -84,7 +80,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
       ['id_chip', 'telefone'], true
     );
 
-    console.log('[WAt] Tabela contato normal: ', tabelaContato);
+    // console.log('[WAt] Tabela contato normal: ', tabelaContato);
 
     // Insere na tabela de contatos normal
     await atualizarNoSupabase(
@@ -97,7 +93,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
       {json_conversa: jsonConversa}
     );
 
-   console.log('>>> ATUALIZOU JSON NO BANCO');
+   console.log('[WAt] Atualizou json de chat no banco');
   } catch (error) {
     console.error('Erro ao registrar mensagem na conversa:', error.message);
   }
