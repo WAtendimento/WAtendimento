@@ -78,10 +78,10 @@ async function verificaEEnviaMensagem({
 
   try {
     if (!contatoEncerrado) {
-      // console.log('[WAt]Antes de adquirir lock');
+      console.log('[WAt]Antes de adquirir lock');
       const lockAdquirido = await tentaAdquirirLock(supabase, telefoneContato, tabela, filtrosAdicionaisContato.id_chip);
 
-      // console.log('[WAt]logAdquirido = ', lockAdquirido);
+      console.log('[WAt]logAdquirido = ', lockAdquirido);
 
       if (lockAdquirido) {
         await atualizarNoSupabase(
@@ -135,7 +135,7 @@ async function verificaEEnviaMensagem({
         // Lock não adquirido — interação em andamento
         await new Promise((resolve) => setTimeout(resolve, 1000));
         logger.add(`Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
-        // console.log(`[WAt]Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
+        console.log(`[WAt]Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
         mensagensAcumuladas.add(mensagem);
         return {
           sucesso: true,
@@ -146,6 +146,7 @@ async function verificaEEnviaMensagem({
       }
     } else {
       logger.add('[LOG] O Contato está encerrado, não prosseguimos no fluxo');
+      console.log('[WAt]O Contato está encerrado, não prosseguimos no fluxo');
       return {
         sucesso: true,
         mensagem: 'Contato encerrado',
