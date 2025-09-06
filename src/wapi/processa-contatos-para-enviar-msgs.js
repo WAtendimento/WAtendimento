@@ -9,6 +9,8 @@ const { enviaMensagensEmMassa } = require('../wapi/enviar-mensagens-em-massa');
 const { enviarMensagemAPI } = require('./enviar-mensagem-api');
 const { controleExecucao } = require('./controlador-estado-execucao');
 
+const { supabaseCredentials } = require('../../credenciais/supabase');
+
 /**
  * 
  * @param {String} mensagemBase - Mensagem base para ser enviada aos contatos
