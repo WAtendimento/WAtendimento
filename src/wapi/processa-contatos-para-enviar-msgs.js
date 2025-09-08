@@ -75,15 +75,28 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       const to = offset + pageSize - 1;
 
       console.log('[WAt] ID da mensagem para filtro:', idMensagem);
+      let baseQuery = null;
 
-      // Ajustar a query com base no parâmetro `buscarSomenteSemMensagem`
-      let baseQuery = supabase
-        .from(supabaseCredentials.table_data.table_contatos)
-        .select('*')
-        .order('id_cliente', { ascending: true })
-        .range(from, to)
-        .neq('id_mensagem_enviada', idMensagem)
-        .not('telefone', 'is', null);
+      // Verifica se idMensagem é diferente de null para quando tem a chamada do endpoint
+      // receberMensagemEmMassaWebhook "avulso"
+      if(idMensagem !== null) {
+        // Ajustar a query com base no parâmetro `buscarSomenteSemMensagem`
+        baseQuery = supabase
+          .from(supabaseCredentials.table_data.table_contatos)
+          .select('*')
+          .order('id_cliente', { ascending: true })
+          .range(from, to)
+          .neq('id_mensagem_enviada', idMensagem)
+          .not('telefone', 'is', null);
+      } else {
+         // Ignorando idMensagem
+        baseQuery = supabase
+          .from(supabaseCredentials.table_data.table_contatos)
+          .select('*')
+          .order('id_cliente', { ascending: true })
+          .range(from, to)
+          .not('telefone', 'is', null);
+      }
 
       // Condições para o comportamento padrão
       console.log('[WAt]|| Envio em massa: Enviando mensagem para contatos que ainda nao receberam mensagem alguma');
@@ -178,11 +191,14 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
             totalSucessos++;
             indiceCredencial = (indiceCredencial + 1) % resultadoConsultaChip.length;
 
-            await atualizarStatusEnvio({
+            if(idMensagem !== null) {
+               await atualizarStatusEnvio({
               idCliente: mensagem.id_cliente,
               idMensagem: idMensagem, // ou o que vier da WAPI
               supabase,
             });
+            }
+
           } else {
             totalFalhas++;
           }
