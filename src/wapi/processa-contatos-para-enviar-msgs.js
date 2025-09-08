@@ -74,6 +74,8 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       const from = offset;
       const to = offset + pageSize - 1;
 
+      console.log('[WAt] ID da mensagem para filtro:', idMensagem);
+
       // Ajustar a query com base no parâmetro `buscarSomenteSemMensagem`
       let baseQuery = supabase
         .from(supabaseCredentials.table_data.table_contatos)
