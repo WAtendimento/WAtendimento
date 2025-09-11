@@ -111,14 +111,14 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       console.log('[WAt]|| Envio em massa: Enviando mensagem para contatos que ainda nao receberam mensagem alguma');
       baseQuery.order('id_cliente', { ascending: false });
 
-      console.log('##ENVIO EM MASSA: Query gerada:', baseQuery.toString());
+      // console.log('##ENVIO EM MASSA: Query gerada:', baseQuery.toString());
       
       //Filtro para testes internos so com meu numero e de maria
-      baseQuery.in('id_cliente', [7749, 7648]).order('id_cliente', { ascending: false });
+      // baseQuery.in('id_cliente', [7749, 7648]).order('id_cliente', { ascending: false });
 
       const { data, error } = await baseQuery;
 
-      console.log(`[WAt]|| Depuração: Contatos carregados do Supabase:`, data);
+      // console.log(`[WAt]|| Depuração: Contatos carregados do Supabase:`, data);
 
       if (error) {
         console.error('[WAt]Erro na consulta ao Supabase:', error.message);
