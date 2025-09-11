@@ -17,10 +17,13 @@ const { supabaseCredentials } = require('../../credenciais/supabase');
  * @param {Number} maxResults - Número máximo de resultados a serem processados
  * @param {Object} credenciaisWAPI - Credenciais WAPI do chip a ser utilizado
  * @param {Object} credenciaisSupabase - Credenciais do Supabase para acessar a tabela de contatos
+ * @param {String} funcao - indica qual funcao queremos que seja executada (NOVOS_CONTATOS, SERIAL_CONTATOS, TODOS_CONTATOS)
  * @returns {Promise<Object>} - Retorna um objeto com o total de contatos carregados, sucessos e falhas 
  */
+
+
 async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase, supabase,
-  idMensagem, bot
+  idMensagem, bot, funcao = 'TODOS_CONTATOS'
 ) {
   
   // TO-DO: Buscar o telefone do responsável pelo banco
@@ -77,9 +80,17 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       console.log('[WAt] ID da mensagem para filtro:', idMensagem);
       let baseQuery = null;
 
-      // Verifica se idMensagem é diferente de null para quando tem a chamada do endpoint
-      // receberMensagemEmMassaWebhook "avulso"
-      if(idMensagem !== null) {
+      // Verificar qual a funcao para selecionar os contatos corretos
+      if(funcao === 'NOVOS_CONTATOS') {
+        baseQuery = supabase
+        .from(supabaseCredentials.table_data.table_contatos)
+        .select('*')
+        .order('id_cliente', { ascending: true })
+        .range(from, to)
+        .is('id_mensagem_enviada', null)
+        .is('ultimo_envio_em_massa', null)
+        .not('telefone', 'is', null);
+      } else if (funcao === 'SERIAL_CONTATOS') {
         // Ajustar a query com base no parâmetro `buscarSomenteSemMensagem`
         baseQuery = supabase
           .from(supabaseCredentials.table_data.table_contatos)
@@ -88,8 +99,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           .range(from, to)
           .neq('id_mensagem_enviada', idMensagem)
           .not('telefone', 'is', null);
-      } else {
-         // Ignorando idMensagem
+      } else { // TODOS_CONTATOS, ignorando idMensagem
         baseQuery = supabase
           .from(supabaseCredentials.table_data.table_contatos)
           .select('*')
@@ -103,7 +113,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       baseQuery.order('id_cliente', { ascending: false });
 
       console.log('##ENVIO EM MASSA: Query gerada:', baseQuery.toString());
-      //
+      
       //Filtro para testes internos so com meu numero e de maria
       baseQuery.in('id_cliente', [7749, 7648]).order('id_cliente', { ascending: false });
 
@@ -191,7 +201,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
             totalSucessos++;
             indiceCredencial = (indiceCredencial + 1) % resultadoConsultaChip.length;
 
-            if(idMensagem !== null) {
+            if(funcao !== 'TODOS_CONTATOS') {
                await atualizarStatusEnvio({
               idCliente: mensagem.id_cliente,
               idMensagem: idMensagem, // ou o que vier da WAPI
@@ -272,6 +282,7 @@ function gerarMensagensParaEnvio(contatos, mensagemBase) {
   console.log('[WAt]|| Envio em massa: Mensagens geradas para todos os contatos.');
   return { contacts };
 }
+
 const atualizarStatusEnvio = async ({ idCliente, idMensagem, supabase }) => {
   if (!idCliente || !idMensagem || !supabase) {
     console.warn('⚠️ Dados insuficientes para atualizar status de envio.');
