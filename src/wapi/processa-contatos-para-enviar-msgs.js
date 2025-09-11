@@ -9,7 +9,6 @@ const { enviaMensagensEmMassa } = require('../wapi/enviar-mensagens-em-massa');
 const { enviarMensagemAPI } = require('./enviar-mensagem-api');
 const { controleExecucao } = require('./controlador-estado-execucao');
 
-const { supabaseCredentials } = require('../../credenciais/supabase');
 
 /**
  * 
@@ -83,7 +82,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       // Verificar qual a funcao para selecionar os contatos corretos
       if(funcao === 'NOVOS_CONTATOS') {
         baseQuery = supabase
-        .from(supabaseCredentials.table_data.table_contatos)
+        .from(credenciaisSupabase.table_data.table_contatos)
         .select('*')
         .order('id_cliente', { ascending: true })
         .range(from, to)
@@ -93,7 +92,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       } else if (funcao === 'SERIAL_CONTATOS') {
         // Ajustar a query com base no parâmetro `buscarSomenteSemMensagem`
         baseQuery = supabase
-          .from(supabaseCredentials.table_data.table_contatos)
+          .from(credenciaisSupabase.table_data.table_contatos)
           .select('*')
           .order('id_cliente', { ascending: true })
           .range(from, to)
@@ -101,7 +100,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           .not('telefone', 'is', null);
       } else { // TODOS_CONTATOS, ignorando idMensagem
         baseQuery = supabase
-          .from(supabaseCredentials.table_data.table_contatos)
+          .from(credenciaisSupabase.table_data.table_contatos)
           .select('*')
           .order('id_cliente', { ascending: true })
           .range(from, to)
@@ -290,7 +289,7 @@ const atualizarStatusEnvio = async ({ idCliente, idMensagem, supabase }) => {
   }
 
   const { error } = await supabase
-    .from(supabaseCredentials.table_data.table_contatos)
+    .from(credenciaisSupabase.table_data.table_contatos)
     .update({
       id_mensagem_enviada: idMensagem,
     })
