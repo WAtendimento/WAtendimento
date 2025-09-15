@@ -1,6 +1,6 @@
 {
   "name": "@watendimento/watendimento",
-  "version": "4.3.2",
+  "version": "4.3.3",
   "main": "src/index.js",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
@@ -14,7 +14,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@api/cvcrm": "file:MaxPlural/testes/.api/apis/cvcrm",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@google-cloud/vision": "^4.3.2",
     "@supabase/supabase-js": "^2.47.12",
