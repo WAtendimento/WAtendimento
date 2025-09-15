@@ -282,8 +282,8 @@ function gerarMensagensParaEnvio(contatos, mensagemBase) {
 
   // Gera a mensagem personalizada
   const mensagemPersonalizada = primeiroNome
-    ? `Olá ${primeiroNome}, ${mensagemBase}`
-    : `Olá, ${mensagemBase}`;
+    ? `Olá ${primeiroNome}! ${mensagemBase}`
+    : `Olá! ${mensagemBase}`;
 
     return {
       number: telefone || '',
