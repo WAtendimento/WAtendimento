@@ -22,11 +22,13 @@ const { controleExecucao } = require('./controlador-estado-execucao');
 
 
 async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase, supabase,
-  idMensagem, bot, funcao = 'TODOS_CONTATOS'
+  idMensagem, bot, funcao = 'TODOS_CONTATOS', modoTeste = false
 ) {
   
   // TO-DO: Buscar o telefone do responsável pelo banco
   const telefoneResponsavel = '5581988961959'; // numero de maria
+  const telefonesTeste = ['5581988961959', '558196948615']; // Livia e Maria
+
 
   console.log('[WAt]|| Envio em massa: Iniciando o processo de envio de mensagens em massa...');
 
@@ -105,7 +107,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           .order('id_cliente', { ascending: true })
           .range(from, to)
           .not('telefone', 'is', null);
-      }
+      } 
 
       // Condições para o comportamento padrão
       console.log('[WAt]|| Envio em massa: Enviando mensagem para contatos que ainda nao receberam mensagem alguma');
@@ -115,6 +117,15 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       
       //Filtro para testes internos so com meu numero e de maria
       // baseQuery.in('id_cliente', [7749, 7648]).order('id_cliente', { ascending: false });
+
+      if (modoTeste) {
+        baseQuery = supabase
+          .from(credenciaisSupabase.table_data.table_contatos)
+          .select('*')
+          .in('telefone', telefonesTeste)
+          .order('id_cliente', { ascending: false });
+      }
+
 
       const { data, error } = await baseQuery;
 
@@ -205,6 +216,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
               idCliente: mensagem.id_cliente,
               idMensagem: idMensagem, // ou o que vier da WAPI
               supabase,
+              credenciaisSupabase
             });
             }
 
@@ -265,11 +277,13 @@ function gerarMensagensParaEnvio(contatos, mensagemBase) {
   console.log('[WAt]|| Envio em massa: Iniciando a geração de mensagens para os contatos...');
 
   const contacts = contatos.map(({ telefone, nome_cliente, id_cliente }) => {
-    // Pega apenas o primeiro nome do contato
-    const primeiroNome = nome_cliente ? nome_cliente.split(' ')[0] : 'Cliente';
+   // Pega apenas o primeiro nome do contato
+  const primeiroNome = nome_cliente ? nome_cliente.split(' ')[0] : '';
 
-    // Gera a mensagem personalizada
-    const mensagemPersonalizada = `Oi ${primeiroNome}, ${mensagemBase}`;
+  // Gera a mensagem personalizada
+  const mensagemPersonalizada = primeiroNome
+    ? `Olá ${primeiroNome}, ${mensagemBase}`
+    : `Olá, ${mensagemBase}`;
 
     return {
       number: telefone || '',
@@ -282,7 +296,7 @@ function gerarMensagensParaEnvio(contatos, mensagemBase) {
   return { contacts };
 }
 
-const atualizarStatusEnvio = async ({ idCliente, idMensagem, supabase }) => {
+const atualizarStatusEnvio = async ({ idCliente, idMensagem, supabase, credenciaisSupabase}) => {
   if (!idCliente || !idMensagem || !supabase) {
     console.warn('⚠️ Dados insuficientes para atualizar status de envio.');
     return;
