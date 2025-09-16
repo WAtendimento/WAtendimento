@@ -98,7 +98,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           .select('*')
           .order('id_cliente', { ascending: true })
           .range(from, to)
-          .neq('id_mensagem_enviada', idMensagem)
+          .or(`id_mensagem_enviada.is.null,id_mensagem_enviada.neq.${idMensagem}`)
           .not('telefone', 'is', null);
       } else { // TODOS_CONTATOS, ignorando idMensagem
         baseQuery = supabase
