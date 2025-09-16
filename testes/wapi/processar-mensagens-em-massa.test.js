@@ -27,7 +27,7 @@ const supabase = createClient(
 
 await processarMensagensEmMassa(
   "Tudo bem? Passando para dizer que setembro é o mês perfeito para viver experiências únicas com a Blu Estadias. 🌴💙\n\nTemos tarifas especiais nos destinos mais paradisíacos do Brasil.\nMe chama aqui e te ajudo a escolher o lugar perfeito!",
-  5,
+  50,
   '',
    supabaseCredentials,
   supabase,
