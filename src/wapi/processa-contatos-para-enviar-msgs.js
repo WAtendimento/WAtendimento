@@ -110,8 +110,8 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       } 
 
       // Condições para o comportamento padrão
-      console.log('[WAt]|| Envio em massa: Enviando mensagem para contatos que ainda nao receberam mensagem alguma');
-      baseQuery.order('id_cliente', { ascending: false });
+      // console.log('[WAt]|| Envio em massa: Enviando mensagem para contatos que ainda nao receberam mensagem alguma');
+      // baseQuery.order('id_cliente', { ascending: false });
 
       // console.log('##ENVIO EM MASSA: Query gerada:', baseQuery.toString());
       
@@ -123,7 +123,9 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           .from(credenciaisSupabase.table_data.table_contatos)
           .select('*')
           .in('telefone', telefonesTeste)
-          .order('id_cliente', { ascending: false });
+          .order('id_cliente', { ascending: true });
+
+          console.log('[WAt]|| Envio em massa: Modo de teste ativo. Apenas números de teste serão processados.')
       }
 
 
@@ -139,7 +141,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       const contatos = data || [];
       const quantidadeCarregada = contatos.length;
 
-      console.log(`[WAt]|| Envio em massa: Contatos carregados nesta página: ${quantidadeCarregada}`);
+      // console.log(`[WAt]|| Envio em massa: Contatos carregados nesta página: ${quantidadeCarregada}`);
       totalCarregados += quantidadeCarregada;
 
       if (quantidadeCarregada === 0) {
