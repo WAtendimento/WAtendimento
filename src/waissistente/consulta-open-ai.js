@@ -4,7 +4,7 @@ const axios = require('axios');
 async function consultaOpenAI({ data }) {    
     const apiKey = data.apiKey;    
     const assistantId = data.assistant_id;    
-    const messageContent = data.invoice_text;  
+    const messageContent = data.invoice_message;  
    
     const maxRetries = 10; // Número máximo de tentativas após a primeira
 
