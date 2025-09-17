@@ -1,4 +1,4 @@
-const enviarMensagemPorTipo = require('./enviar-mensagem-por-tipo');
+const enviarMensagemPorTipo = require('../wapi/enviar-mensagem-por-tipo');
 
 
 async function tratarEnviosGlide(dados, chip) {

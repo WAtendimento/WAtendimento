@@ -1,6 +1,6 @@
-const { enviarMensagemAPI } = require('./enviarMensagemAPI');
-const { enviarAudioAPI } = require('./enviarAudioAPI');
-const { enviarImagemAPI } = require('./enviarImagemAPI');
+const { enviarMensagemAPI } = require('./enviar-mensagem-api');
+const { enviarAudioAPI } = require('./enviar-audio-api');
+const { enviarImagemAPI } = require('./enviar-imagem-api');
 
 /**
  * Envia uma mensagem baseada no tipo ("texto", "audio" ou "imagem").
@@ -22,7 +22,9 @@ async function enviarMensagemPorTipo({ credenciais, tipo, telefone, conteudo }) 
         conteudo,
         '', // nome omitido
         '', // mensagem original omitida
-        false
+        false,
+        null // contextoChat omitido, pois essa função só é chamada quando chamada
+             // tratarEnviosGlide no receberMensagem e lá, já atualizamos o chat
       );
 
     case 'audio':
@@ -48,7 +50,7 @@ async function enviarMensagemPorTipo({ credenciais, tipo, telefone, conteudo }) 
   }
 }
 
-module.exports ={ enviarMensagemPorTipo };
+module.exports = enviarMensagemPorTipo;
 
 // (async () => {
 //   const credenciais = {
