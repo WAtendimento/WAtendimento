@@ -74,13 +74,14 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
         id_chip: id_chip,
         json_conversa: jsonConversa,
         bot: bot,
-        
       },
       true,
-      ['id_chip', 'telefone'], true
+      ['id_chip', 'telefone', 'bot'], 
+      true
     );
 
-    // console.log('[WAt] Tabela contato normal: ', tabelaContato);
+    console.log('[WAt] Tabela contato normal: ', tabelaContato);
+    console.log('[WAt] Telefone cliente: ', telefoneCliente);
 
     // Insere na tabela de contatos normal
     await atualizarNoSupabase(
@@ -94,6 +95,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
     );
 
    console.log('[WAt] Atualizou json de chat no banco');
+
   } catch (error) {
     console.error('Erro ao registrar mensagem na conversa:', error.message);
   }
