@@ -82,15 +82,15 @@ const processNewMessages = async ({
   const messagesUrl = `https://api.openai.com/v1/threads/${threadId}/messages`;
 
   try {
-    logger.add("==== [ETAPA 2: AGUARDANDO RESPOSTA DO ASSISTENTE] ====");
+    logger.add(">>> [WAt] [ETAPA 2: AGUARDANDO RESPOSTA DO ASSISTENTE] ");
 
     const fetchMessagesWithRetries = async (retries = 7, interval = 5000) => {
       logger.add(
-        `>>> Iniciando fetchMessagesWithRetries com ${retries} tentativas e intervalo de ${interval}ms.`
+        `>>> [WAt] Iniciando fetchMessagesWithRetries com ${retries} tentativas e intervalo de ${interval}ms.`
       );
 
       for (let attempt = 1; attempt <= retries; attempt++) {
-        logger.add(`>>> Tentativa ${attempt} de buscar mensagens.`);
+        logger.add(`>>> [WAt] Tentativa ${attempt} de buscar mensagens.`);
 
         try {
           const response = await axios.get(messagesUrl, {
@@ -102,12 +102,12 @@ const processNewMessages = async ({
           });
 
           logger.add(
-            `>>> Resposta recebida na tentativa ${attempt}. Verificando mensagens...`
+            `>>> [WAt] Resposta recebida na tentativa ${attempt}. Verificando mensagens...`
           );
 
           const messages = response.data.data || [];
           logger.add(
-            `>>> Número total de mensagens recebidas: ${messages.length}`
+            `>>> [WAt] Número total de mensagens recebidas: ${messages.length}`
           );
 
           //Filtra apenas as mensagens do usuário
@@ -119,7 +119,7 @@ const processNewMessages = async ({
 
           if (!lastUserMessage) {
             logger.add(
-              ">>> Nenhuma mensagem do usuário encontrada. Não há como determinar a última resposta do assistente."
+              ">>> [WAt] Nenhuma mensagem do usuário encontrada. Não há como determinar a última resposta do assistente."
             );
             return { message: null, status: "no user messages" };
           }
@@ -134,7 +134,7 @@ const processNewMessages = async ({
             .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
           logger.add(
-            `>>> Número de mensagens do assistente: ${assistantMessages.length}`
+            `>>> [WAt] Número de mensagens do assistente: ${assistantMessages.length}`
           );
 
           if (assistantMessages.length > 0) {
@@ -148,28 +148,28 @@ const processNewMessages = async ({
               return lastAssistantMessage; // Retorna a última mensagem válida
             } else {
               logger.add(
-                `>>> Tentativa ${attempt}: Última mensagem ainda está vazia. Retentando em ${interval}ms...`
+                `>>> [WAt] Tentativa ${attempt}: Última mensagem ainda está vazia. Retentando em ${interval}ms...`
               );
             }
           } else {
             logger.add(
-              `>>> Tentativa ${attempt}: Nenhuma mensagem do assistente encontrada. Retentando em ${interval}ms...`
+              `>>> [WAt] Tentativa ${attempt}: Nenhuma mensagem do assistente encontrada. Retentando em ${interval}ms...`
             );
           }
         } catch (error) {
           logger.add(
-            `>>> Erro na tentativa ${attempt}: ${error.message}. Retentando em ${interval}ms...`
+            `>>> [WAt] Erro na tentativa ${attempt}: ${error.message}. Retentando em ${interval}ms...`
           );
-          logger.error(`>>> Stack trace: ${error.stack}`);
+          logger.error(`>>> [WAt] Stack trace: ${error.stack}`);
         }
 
         // Aguarda antes da próxima tentativa
         if (attempt < retries) {
           await new Promise((resolve) => setTimeout(resolve, interval));
         } else {
-          logger.add(">>> Tentativas esgotadas. Falha ao buscar mensagens.");
+          logger.add(">>> [WAt] Tentativas esgotadas. Falha ao buscar mensagens.");
           throw new Error(
-            "Falha ao buscar mensagens após múltiplas tentativas."
+            "[WAt] Falha ao buscar mensagens após múltiplas tentativas."
           );
         }
       }
@@ -186,7 +186,7 @@ const processNewMessages = async ({
 
     if (lastMessageId && lastMessageId === lastAssistantMessage.id) {
       logger.add(
-        `>>> A última mensagem (ID = ${lastAssistantMessage.id}) já foi processada.`
+        `>>> [WAt] A última mensagem (ID = ${lastAssistantMessage.id}) já foi processada.`
       );
       return { message: null, status: "no new messages" };
     }
@@ -209,24 +209,24 @@ const processNewMessages = async ({
     } else if (typeof messageText === "string") {
       messageContent = messageText;
       console.log(
-        "Objeto do Last Assistant Message",
+        "[WAt] Objeto do Last Assistant Message",
         JSON.stringify(lastAssistantMessage, null, 2)
       );
 
       console.log(
-        "JSON do Last Assistant Message",
+        "[WAt] JSON do Last Assistant Message",
         lastAssistantMessage.content[0].text.value
       );
     } else {
-      console.log(`[WAt]Estrutura inesperada da mensagem: ${lastAssistantMessage}`);
+      console.log(`[WAt] Estrutura inesperada da mensagem: ${lastAssistantMessage}`);
       // throw new Error("Estrutura inesperada da mensagem.", messageContent);
       console.log(
-        "Objeto do Last Assistant Message",
+        "[WAt] Objeto do Last Assistant Message",
         JSON.stringify(lastAssistantMessage, null, 2)
       );
 
       console.log(
-        "JSON do Last Assistant Message",
+        "[WAt] JSON do Last Assistant Message",
         lastAssistantMessage.content[0].text.value
       );
     }
@@ -243,8 +243,8 @@ const processNewMessages = async ({
 
     return parsedContent;
   } catch (error) {
-    logger.error("Erro em processNewMessages:", error.message);
-    console.error("[WAt]Erro em processNewMessages:", error.message);
+    logger.error(">>> [WAt] Erro em processNewMessages:", error.message);
+    console.error("[WAt] Erro em processNewMessages:", error.message);
     console.log(logger.finish());
     throw error;
   }

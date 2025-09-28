@@ -44,7 +44,7 @@ async function enviaMensagemThreadExistente({ data }) {
       try {
         // Log the content being sent to the assistant
         logger.add(
-          ">>> Conteúdo sendo enviado ao assistente",
+          ">>> [WAt] Conteúdo sendo enviado ao assistente",
           formattedMessage
         );
 
@@ -76,7 +76,7 @@ async function enviaMensagemThreadExistente({ data }) {
         });
 
         logger.add(
-          ">>> Mensagem enviada e run criada com sucesso:",
+          ">>> [WAt] Mensagem enviada e run criada com sucesso:",
           runResponse.data.id
         );
 
@@ -85,14 +85,14 @@ async function enviaMensagemThreadExistente({ data }) {
           runId: runResponse.data.id,
         };
       } catch (error) {
-        console.error(`[WAt][enviarMensagemThreadExistente] Erro na tentativa ${attempts}:`, error.message);
-        logger.error(">>> Erro na tentativa", attempts);
+        console.error(`[WAt] [enviarMensagemThreadExistente] Erro na tentativa ${attempts}:`, error.message);
+        logger.error(">>> [WAt] Erro na tentativa", attempts);
 
         if (attempts >= maxRetries) {
-          console.error("[WAt]Número máximo de tentativas alcançado.");
-          logger.error("Número máximo de tentativas alcançado.");
+          console.error("[WAt] Número máximo de tentativas alcançado.");
+          logger.error(">>> [WAt] Número máximo de tentativas alcançado.");
           throw new Error(
-            `Erro ao criar mensagem ou execução após ${maxRetries} tentativas: ${error.message}`
+            `[WAt] Erro ao criar mensagem ou execução após ${maxRetries} tentativas: ${error.message}`
           );
         }
 
@@ -113,8 +113,8 @@ async function enviaMensagemThreadExistente({ data }) {
       messageId: messageResponse.id,
     };
   } catch (error) {
-    console.error("[WAt]Erro na execução:", error.message);
-    logger.error("Erro na execução:", error.message);
+    console.error("[WAt] Erro na execução:", error.message);
+    logger.error(">>> [WAt] Erro na execução:", error.message);
     return { success: false, error: error.message };
   }
 }

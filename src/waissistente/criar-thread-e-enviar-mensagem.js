@@ -95,7 +95,7 @@ async function criaThreadeEnviaMensagem({ data }) {
         "OpenAI-Beta": "assistants=v2",
       },
     });
-    logger.add(`>>> Thread criada: ${threadResponse.data.id}`);
+    logger.add(`>>> [WAt] Thread criada: ${threadResponse.data.id}`);
     return threadResponse.data.id;
   };
 
@@ -114,7 +114,7 @@ async function criaThreadeEnviaMensagem({ data }) {
     while (attempt < maxRetries) {
       try {
         attempt++;
-        logger.add(`>>> Tentativa ${attempt} de enviar mensagem...`);
+        logger.add(`>>> [WAt] Tentativa ${attempt} de enviar mensagem...`);
 
         const messageResponse = await axios.post(messageUrl, messageBody, {
           headers: {
@@ -124,15 +124,15 @@ async function criaThreadeEnviaMensagem({ data }) {
           },
         });
 
-        logger.add(">>> Mensagem enviada com sucesso.");
+        logger.add(">>> [WAt] Mensagem enviada com sucesso.");
         return messageResponse.data;
       } catch (error) {
         logger.add(
-          `>>> Erro ao enviar mensagem (tentativa ${attempt}): ${error.message}`
+          `>>> [WAt] Erro ao enviar mensagem (tentativa ${attempt}): ${error.message}`
         );
         if (attempt >= maxRetries) {
           throw new Error(
-            `Falha ao enviar mensagem após ${maxRetries} tentativas.`
+            `[WAt] Falha ao enviar mensagem após ${maxRetries} tentativas.`
           );
         }
         await delay(2000);
@@ -175,7 +175,7 @@ async function criaThreadeEnviaMensagem({ data }) {
     while (attempt < maxRetries) {
       try {
         attempt++;
-        logger.add(`>>> Tentativa ${attempt} de buscar resposta...`);
+        logger.add(`>>> [WAt] Tentativa ${attempt} de buscar resposta...`);
 
         const response = await axios.get(messagesUrl, {
           headers: {
@@ -191,7 +191,7 @@ async function criaThreadeEnviaMensagem({ data }) {
         );
 
         if (assistantMessage) {
-          logger.add(">>> Resposta do assistente encontrada.");
+          logger.add(">>> [WAt] Resposta do assistente encontrada.");
           const messageText =
             assistantMessage.text ||
             assistantMessage.content ||
@@ -199,7 +199,7 @@ async function criaThreadeEnviaMensagem({ data }) {
 
           if (!messageText) {
             throw new Error(
-              "Estrutura de resposta inesperada: campo 'text' não encontrado na mensagem."
+              "[WAt] Estrutura de resposta inesperada: campo 'text' não encontrado na mensagem."
             );
           }
 
@@ -227,11 +227,11 @@ async function criaThreadeEnviaMensagem({ data }) {
             resp4: "",
           };
         } else {
-          logger.add(">>> Nenhuma resposta do assistente encontrada.");
+          logger.add(">>> [WAt] Nenhuma resposta do assistente encontrada.");
         }
       } catch (error) {
         logger.add(
-          `>>> Erro ao buscar resposta do assistente (tentativa ${attempt}): ${error.message}`
+          `>>> [WAt] Erro ao buscar resposta do assistente (tentativa ${attempt}): ${error.message}`
         );
       }
 
@@ -241,7 +241,7 @@ async function criaThreadeEnviaMensagem({ data }) {
     }
 
     throw new Error(
-      `Falha ao obter resposta do assistente após ${maxRetries} tentativas.`
+      `[WAt] Falha ao obter resposta do assistente após ${maxRetries} tentativas.`
     );
   };
 
@@ -260,7 +260,7 @@ async function criaThreadeEnviaMensagem({ data }) {
     );
 
     if (dadosOpenAIContato[0].openai_thread_id) {
-      logger.add(">>> thread existia no Banco após nova verificação");
+      logger.add(">>> [WAt] thread existia no Banco após nova verificação");
       threadId = await dadosOpenAIContato[0].openai_thread_id;
     } else {
       const threadData = await withTimeout(
@@ -294,10 +294,10 @@ async function criaThreadeEnviaMensagem({ data }) {
       "getAssistantResponse"
     );
 
-    logger.add(`>>> Atualizando o telefone do contato: ${telefoneContato}`);
+    logger.add(`>>> [WAt] Atualizando o telefone do contato: ${telefoneContato}`);
 
     logger.add(
-      `>>> Com o ID da última mensagem:${assistantResponse.lastMessageId}`
+      `>>> [WAt] Com o ID da última mensagem:${assistantResponse.lastMessageId}`
     );
 
     let registro = {

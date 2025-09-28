@@ -7,11 +7,11 @@ const logger = criaLogger('mensagemEmMassa');
 
 async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSupabase, bot) {
   if (!json || typeof json !== 'object' || !json.mensagensGeradas || !Array.isArray(json.mensagensGeradas.contacts)) {
-    throw new Error('JSON inválido ou mal formatado.');
+    throw new Error('[WAt] JSON inválido ou mal formatado.');
   }
 
   const contatos = json.mensagensGeradas.contacts;
-  logger.add(`Processando ${contatos.length} contatos...`);
+  logger.add(`>>> [WAt] Processando ${contatos.length} contatos...`);
 
   //console.log(credenciais);
   let mensagensEnviadasComSucesso = 0;
@@ -126,7 +126,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
 
         mensagensEnviadasComSucesso++;
         statusEnvio = { id_cliente, sucesso: true };
-        logger.add(`Mensagem enviada com sucesso para ${formattedNumber}.`);
+        logger.add(`>>> [WAt] Mensagem enviada com sucesso para ${formattedNumber}.`);
 
         //delay apenas se for sucesso no envio
         let delay = Math.random() * (7000 - 1000) + 1000;
@@ -192,7 +192,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
     }
   }
 
-  logger.add(`Processamento de mensagens concluído. Total de mensagens enviadas com sucesso: ${mensagensEnviadasComSucesso}.`);
+  logger.add(`>>> [WAt] Processamento de mensagens concluído. Total de mensagens enviadas com sucesso: ${mensagensEnviadasComSucesso}.`);
 }
 
 module.exports = { enviaMensagensEmMassa };

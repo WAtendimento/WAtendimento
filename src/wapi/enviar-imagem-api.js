@@ -46,16 +46,13 @@ async function enviarImagemAPI(credenciais, number, message, name, mensagemDoUsu
         },
       });
 
-      // logger.add("Mensagem enviada com sucesso:", url);
-      // console.log("[WAt]Mensagem enviada com sucesso:", url);
-
-      logger.result(`"${imageUrl}"\n- Destinatário: ${name}\n- Em resposta a: "${mensagemDoUsuario}".`);
+      logger.result(`>>> [WAt] "${imageUrl}"\n- Destinatário: ${name}\n- Em resposta a: "${mensagemDoUsuario}".`);
       return { sucesso: true, telefone: number, response: response.data };
     } catch (error) {
-      console.error(`[WAt]Erro ao enviar mensagem para ${name} (${number}):`, error.message);
+      console.error(`[WAt] Erro ao enviar mensagem para ${name} (${number}):`, error.message);
 
       if (error.response) {
-        console.error('[WAt]Detalhes do erro da API:', {
+        console.error('[WAt] Detalhes do erro da API:', {
           status: error.response.status,
           data: error.response.data,
         });

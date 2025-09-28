@@ -66,7 +66,7 @@ async function verificaEEnviaMensagem({
   // console.log('[WAt]dadosFornecidos', dadosFornecidos);
   // console.log('[WAt]telefoneContato', telefoneContato);
 
-  logger.add(`mensagem: ${mensagem} nomePessoa: ${nomeContato} dadosFornecidos: ${dadosFornecidos}`);
+  logger.add(`>>> [WAt] mensagem: ${mensagem} nomePessoa: ${nomeContato} dadosFornecidos: ${dadosFornecidos}`);
   const filtrosFormatados = Object.entries(filtrosComTelefone).reduce((acc, [chave, valor]) => {
     acc[chave] = ['=', valor];
     return acc;
@@ -92,10 +92,10 @@ async function verificaEEnviaMensagem({
           false
         );
 
-        logger.add(`Criando Buffer com 1ª mensagem: ${mensagem}`);
+        logger.add(`>>> [WAt] Criando Buffer com 1ª mensagem: ${mensagem}`);
         // console.log(`[WAt]Criando buffer com a 1a msg:  ${mensagem}`);
         mensagensAcumuladas.add(mensagem);
-        logger.add('Delay de 20 segundos para BUFFER');
+        logger.add('>>> [WAt] Delay de 20 segundos para BUFFER');
         // console.log('[WAt]Delay de 20 segundos para BUFFER');
         await new Promise((resolve) => setTimeout(resolve, 20000));
 
@@ -116,7 +116,7 @@ async function verificaEEnviaMensagem({
           tabela,
         });
 
-        logger.add('Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
+        logger.add('>>> [WAt] Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
         // console.log('[WAt]Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
         await atualizarNoSupabase(
           supabase,
@@ -134,8 +134,8 @@ async function verificaEEnviaMensagem({
       } else {
         // Lock não adquirido — interação em andamento
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        logger.add(`Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
-        console.log(`[WAt]Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
+        logger.add(`>>> [WAt] Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
+        console.log(`[WAt] Lock ativo. Adicionando mensagem ao Buffer: ${mensagem}`);
         mensagensAcumuladas.add(mensagem);
         return {
           sucesso: true,
@@ -145,8 +145,8 @@ async function verificaEEnviaMensagem({
         };
       }
     } else {
-      logger.add('[LOG] O Contato está encerrado, não prosseguimos no fluxo');
-      console.log('[WAt]O Contato está encerrado, não prosseguimos no fluxo');
+      logger.add('>>> [WAt] O Contato está encerrado, não prosseguimos no fluxo');
+      console.log('[WAt] O Contato está encerrado, não prosseguimos no fluxo');
       return {
         sucesso: true,
         mensagem: 'Contato encerrado',
@@ -190,7 +190,7 @@ async function controleDeThreads({
 
     if (!openai_thread_id || openai_thread_id == null) {
       try {
-        logger.add('==== [ETAPA 1: CRIANDO THREAD && ENVIANDO MENSAGEM] ====');
+        logger.add('>>> [WAt] [ETAPA 1: CRIANDO THREAD && ENVIANDO MENSAGEM] ');
         const mensagemRecebidaPrimeiraThread = await criaThreadeEnviaMensagem({
           data: {
             mensagem: mensagem,
@@ -207,14 +207,14 @@ async function controleDeThreads({
           }
         });
 
-        logger.add('>>> Mensagem enviada com sucesso: ');
+        logger.add('>>> [WAt] Mensagem enviada com sucesso: ');
 
         threadId = mensagemRecebidaPrimeiraThread.thread_id;
         lastMessageId = mensagemRecebidaPrimeiraThread.value?.messageId;
         criouThread = true;
       } catch (erro) {
-        logger.error('Erro ao criar thread e enviar mensagem:', erro);
-        console.error('[WAt]Erro ao criar thread e enviar mensagem:', erro);
+        logger.error('>>> [WAt] Erro ao criar thread e enviar mensagem:', erro);
+        console.error('[WAt] Erro ao criar thread e enviar mensagem:', erro);
         return {
           sucesso: false,
           mensagem: 'Erro ao criar thread',
@@ -222,9 +222,9 @@ async function controleDeThreads({
         };
       }
     } else {
-      logger.add('>>> Thread existente encontrada. Enviando mensagem na thread...');
+      logger.add('>>> [WAt] Thread existente encontrada. Enviando mensagem na thread...');
       try {
-        logger.add('==== [ETAPA 1: ENVIANDO MENSAGEM EM THREAD EXISTENTE] ====');
+        logger.add('>>> [WAt] [ETAPA 1: ENVIANDO MENSAGEM EM THREAD EXISTENTE]');
         const resultado = await enviaMensagemThreadExistente({
           data: {
             thread_id: openai_thread_id,
@@ -268,22 +268,22 @@ async function controleDeThreads({
       let result = await buscaUltimaMensagemThread({ data });
 
       if (!result || typeof result !== 'object') {
-        console.warn('[WAt]Resultado inesperado de buscaUltimaMensagemThread', result);
+        console.warn('[WAt] Resultado inesperado de buscaUltimaMensagemThread', result);
       }
 
       result.resumo = result.resumo || '';
 
-      logger.add('JSON Resposta Bot:', result);
+      logger.add('>>> [WAt] JSON Resposta Bot:', result);
 
       const respostaBot = result.respostaBot;
       if (respostaBot) {
       } else {
-        logger.add('>>> RespostaBot não encontrada no resultado.');
+        logger.add('>>> [WAt] RespostaBot não encontrada no resultado.');
       }
       return { sucesso: true, contatoRetornoIA: result }; // Sempre retornar a estrutura padrão
     } catch (error) {
-      logger.error('Erro ao executar buscaUltimaMensagemThread:', error);
-      console.error('[WAt]Erro ao executar buscaUltimaMensagemThread:', error);
+      logger.error('>>> [WAt] Erro ao executar buscaUltimaMensagemThread:', error);
+      console.error('[WAt] Erro ao executar buscaUltimaMensagemThread:', error);
       return {
         sucesso: false,
         mensagem: 'Erro ao buscar última mensagem',
@@ -291,8 +291,8 @@ async function controleDeThreads({
       };
     }
   } catch (erro) {
-    logger.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
-    console.error('[WAt]Erro inesperado na função verificaEEnviaMensagem:', erro);
+    logger.error('>>> [WAt] Erro inesperado na função verificaEEnviaMensagem:', erro);
+    console.error('[WAt] Erro inesperado na função verificaEEnviaMensagem:', erro);
     return {
       sucesso: false,
       mensagem: 'Erro inesperado',

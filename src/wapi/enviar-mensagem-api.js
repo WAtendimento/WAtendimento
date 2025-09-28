@@ -103,7 +103,7 @@ async function enviarMensagemAPI(
     const results = [];
     for (const parte of partes) {
       if (parte.trim()) {
-        logger.add(`Enviando:  ${parte} `);
+        logger.add(`>>> [WAt] Enviando:  ${parte} `);
         const result = await sendSingleMessage(parte);
         results.push(result);
         await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay de 3 segundos entre mensagens
