@@ -24,9 +24,9 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
     if (isMidia) {
       try {
         conteudoCorrigido = await uploadParaSupabase(mensagem, supabase);
-        console.log('📤 Mídia enviada para Supabase com sucesso');
+        console.log('[WAt] 📤 Mídia enviada para Supabase com sucesso');
       } catch (err) {
-        console.error('❌ Falha ao enviar mídia para Supabase:', err.message);
+        console.error('[WAt] ❌ Falha ao enviar mídia para Supabase:', err.message);
       }
     }
 
@@ -64,7 +64,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
 
     console.log('[WAt] Registrando mensagem na conversa...');
     // Insere ou atualiza na tabela de chats_watendimento
-    // console.log('[WAt] Bot: ', bot);
+    console.log('[WAt] Bot: ', bot);
 
     await insertOuUpsert(
       supabase,
@@ -76,8 +76,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
         bot: bot,
       },
       true,
-      ['id_chip', 'telefone', 'bot'], 
-      true
+      ['id_chip', 'telefone', 'bot']
     );
 
     console.log('[WAt] Tabela contato normal: ', tabelaContato);
@@ -97,7 +96,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
    console.log('[WAt] Atualizou json de chat no banco');
 
   } catch (error) {
-    console.error('Erro ao registrar mensagem na conversa:', error.message);
+    console.error('[WAt] Erro ao registrar mensagem na conversa:', error.message);
   }
 }
 
@@ -117,8 +116,8 @@ module.exports = { atualizarJSONChat };
 //       //mensagem: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIBkAC4gMBIgACEQEDEQH/xAAyAAEAAgMBAQAAAAAAAAAAAAAAAQIDBAUGBwEBAQEBAQEAAAAAAAAAAAAAAAECAwQF/9oADAMBAAIQAxAAAAL1QAAAAAAAAAAAAfnH8T84/ifnH8T84/ifnH8T84/ifnH8T84/ifnH8T84/ifnH8T84/ifnH8T84/iUUtFGq/UP/AH//2Q==',
 //     });
 
-//     console.log('✅ Atualização concluída:', resultado);
+//     console.log('[WAt] ✅ Atualização concluída:', resultado);
 //   } catch (erro) {
-//     console.error('❌ Erro no teste:', erro.message);
+//     console.error('[WAt] ❌ Erro no teste:', erro.message);
 //   }
 // })();

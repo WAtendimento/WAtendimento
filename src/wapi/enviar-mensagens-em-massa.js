@@ -98,7 +98,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
 
       resultadoEnvio = Array.isArray(resultadoEnvio) ? resultadoEnvio[resultadoEnvio.length - 1] : resultadoEnvio;
 
-      console.log(`[WAt]Resultado enviado para ${formattedNumber}`, resultadoEnvio.sucesso);
+      console.log(`[WAt] || Envio em massa: Resultado enviado para ${formattedNumber}`, resultadoEnvio.sucesso);
       const dataAtual = new Date().toLocaleString('pt-BR', {
         timeZone: 'America/Sao_Paulo',
       });
@@ -108,7 +108,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
       const dataFormatada = `${ano}-${mes}-${dia} ${hora}`; // Formata para o padrão YYYY-MM-DD HH:MM:SS
 
       if (resultadoEnvio.sucesso) {
-        console.log('[WAt]|| Envio em massa: Atualiza contato para sucesso de mensagem enviada');
+        console.log('[WAt] || Envio em massa: Atualiza contato para sucesso de mensagem enviada');
 
         const att = await atualizarNoSupabase(
           supabase,

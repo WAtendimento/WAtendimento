@@ -57,7 +57,7 @@ async function liberaLock(supabase, tabela, telefoneContato, id_chip) {
 
   }
 
-  // console.log(`Resultado liberar_lock:`, true);
+  // console.log(`[WAt] Resultado liberar_lock:`, true);
   return true;
 }
 

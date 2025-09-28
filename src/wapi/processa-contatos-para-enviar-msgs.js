@@ -30,10 +30,10 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
   const telefonesTeste = ['5581988961959', '558196948615']; // Livia e Maria
 
 
-  console.log('[WAt]|| Envio em massa: Iniciando o processo de envio de mensagens em massa...');
+  console.log('[WAt] || Envio em massa: Iniciando o processo de envio de mensagens em massa...');
 
   if (!controleExecucao.getEstado()) {
-    console.log('[WAt]|| Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.');
+    console.log('[WAt] || Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.');
   }
 
   try {
@@ -60,25 +60,25 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       .filter(Boolean) // Remove valores nulos ou undefined
       .join(', ');
 
-    console.log('[WAt]|| Envio em massa: Telefones conectados:', connectedPhones);
+    console.log('[WAt] || Envio em massa: Telefones conectados:', connectedPhones);
 
     if (!resultadoConsultaChip || resultadoConsultaChip.length === 0) {
-      console.log('[WAt]|| Envio em massa: Nenhum registro encontrado para o chip informado.');
+      console.log('[WAt] || Envio em massa: Nenhum registro encontrado para o chip informado.');
       throw new Error('Nenhum registro encontrado para o chip informado.');
     }
 
     while (true) {
       if (totalSucessos >= maxResults) {
-        console.log('[WAt]|| Envio em massa: Limite de sucessos atingido. Interrompendo o envio.');
+        console.log('[WAt] || Envio em massa: Limite de sucessos atingido. Interrompendo o envio.');
         break;
       }
 
-      console.log(`[WAt]|| Envio em massa: Carregando contatos a partir do offset ${offset}...`);
+      console.log(`[WAt] || Envio em massa: Carregando contatos a partir do offset ${offset}...`);
 
       const from = offset;
       const to = offset + pageSize - 1;
 
-      console.log('[WAt] ID da mensagem para filtro:', idMensagem);
+      console.log('[WAt] || Envio em massa: ID da mensagem para filtro:', idMensagem);
       let baseQuery = null;
 
       // Verificar qual a funcao para selecionar os contatos corretos
@@ -113,7 +113,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       // console.log('[WAt]|| Envio em massa: Enviando mensagem para contatos que ainda nao receberam mensagem alguma');
       // baseQuery.order('id_cliente', { ascending: false });
 
-      // console.log('##ENVIO EM MASSA: Query gerada:', baseQuery.toString());
+      // console.log('[WAt] || Envio em massa: Query gerada:', baseQuery.toString());
       
       //Filtro para testes internos so com meu numero e de maria
       // baseQuery.in('id_cliente', [7749, 7648]).order('id_cliente', { ascending: false });
@@ -134,7 +134,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       // console.log(`[WAt]|| Depuração: Contatos carregados do Supabase:`, data);
 
       if (error) {
-        console.error('[WAt]Erro na consulta ao Supabase:', error.message);
+        console.error('[WAt] || Envio em massa: Erro na consulta ao Supabase:', error.message);
         throw new Error(`Erro na consulta ao Supabase: ${error.message}`);
       }
 
@@ -145,7 +145,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       totalCarregados += quantidadeCarregada;
 
       if (quantidadeCarregada === 0) {
-        console.log('[WAt]|| Envio em massa: Todos os contatos foram processados.');
+        console.log('[WAt] || Envio em massa: Todos os contatos foram processados.');
         break;
       }
 
@@ -157,7 +157,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       // Iterar sobre as mensagens geradas e enviar uma por vez
       for (const mensagem of mensagensGeradas) {
         if (totalSucessos >= maxResults) {
-          console.log('[WAt]|| Envio em massa: Limite de sucessos atingido. Interrompendo o envio.');
+          console.log('[WAt] || Envio em massa: Limite de sucessos atingido. Interrompendo o envio.');
           break;
         }
 
@@ -166,7 +166,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
 
         while (!mensagemEnviada && resultadoConsultaChip.length > 0) {
           if (!controleExecucao.getEstado()) {
-            console.log('[WAt]|| Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.');
+            console.log('[WAt] || Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.');
             await notificarPausa();
             
             return { status: 'Pausado pelo usuário' };
@@ -178,11 +178,11 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           console.log('[WAt]|| Envio em massa: ', resultados);
 
           if (resultados?.problemaNoChip) {
-            console.log(`[WAt]|| Envio em massa: Chip ${credenciaisChipAtual.connected_phone} inativado. Tentando com o próximo chip...`);
+            console.log(`[WAt] || Envio em massa: Chip ${credenciaisChipAtual.connected_phone} inativado. Tentando com o próximo chip...`);
             resultadoConsultaChip = resultadoConsultaChip.filter((chip) => chip.id_chip !== credenciaisChipAtual.id_chip);
 
             if (resultadoConsultaChip.length === 0) {
-              console.log('[WAt]|| Envio em massa: Todos os chips estão inativos. Interrompendo o envio.');
+              console.log('[WAt] || Envio em massa: Todos os chips estão inativos. Interrompendo o envio.');
               return {
                 totalCarregados,
                 sucessos: totalSucessos,
@@ -194,9 +194,9 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
             indiceCredencial = (indiceCredencial + 1) % resultadoConsultaChip.length;
 
             tentativas++;
-            console.log('[WAt]Novo chip', indiceCredencial);
+            console.log('[WAt] || Envio em massa: Novo chip', indiceCredencial);
             if (tentativas >= resultadoConsultaChip.length) {
-              console.log(`[WAt]|| Envio em massa: Mensagem falhou mesmo após tentar com todos os chips. Pulando para a próxima.`);
+              console.log(`[WAt] || Envio em massa: Mensagem falhou mesmo após tentar com todos os chips. Pulando para a próxima.`);
               totalFalhas++;
               break;
             }
@@ -208,7 +208,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           mensagemEnviada = true;
           const sucesso = resultados.sucesso === true;
 
-          console.log('[WAt]|| Envio em massa: Não teve problema com o chip', sucesso);
+          console.log('[WAt] || Envio em massa: Não teve problema com o chip', sucesso);
           if (sucesso) {
             totalSucessos++;
             indiceCredencial = (indiceCredencial + 1) % resultadoConsultaChip.length;
@@ -229,25 +229,25 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           break; // Sai do while e vai para a próxima mensagem
         }
 
-        console.log(`[WAt]|| Envio em massa: Total de sucessos acumulados: ${totalSucessos}`);
-        console.log(`[WAt]|| Envio em massa: Total de falhas acumuladas: ${totalFalhas}`);
+        console.log(`[WAt] || Envio em massa: Total de sucessos acumulados: ${totalSucessos}`);
+        console.log(`[WAt] || Envio em massa: Total de falhas acumuladas: ${totalFalhas}`);
 
          if (totalSucessos >= quantidadeCarregada) {
-          console.log('##ENVIO EM MASSA: Quantidade carregada máxima atingida. Interrompendo o envio.');
+          console.log('[WAt] || Envio em massa: Quantidade carregada máxima atingida. Interrompendo o envio.');
           break;
         }
 
         if (indiceCredencial === 0) {
-          console.log(`|| Envio em massa: Aguardando Delay para recomeçar os envios`);
+          console.log(`[WAt] || Envio em massa: Aguardando Delay para recomeçar os envios`);
           let delay = Math.random() * (20000 - 30000) + 30000;
-          console.log(`|| Envio em massa: Delay iniciado por ${Math.round(delay / 1000)} segundos`);
+          console.log(`[WAt] || Envio em massa: Delay iniciado por ${Math.round(delay / 1000)} segundos`);
           const resultadoDelay = await delayComVerificacao(delay);
           if (resultadoDelay?.status === 'Pausado durante o delay') {
             return resultadoDelay; // encerra de forma limpa e imediata
           }
         }
         if (totalFalhas >= 20 && totalSucessos == 0) {
-          console.log('|| Envio em massa: Número de falhas consecutivas atingiu 5. Interrompendo o envio.');
+          console.log('[WAt] || Envio em massa: Número de falhas consecutivas atingiu 5. Interrompendo o envio.');
           return {
             totalCarregados,
             sucessos: totalSucessos,
@@ -257,7 +257,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
       }
 
       if (totalSucessos >= maxResults) {
-        console.log('##ENVIO EM MASSA: Limite de sucessos atingido. Interrompendo o envio.');
+        console.log('[WAt] || Envio em massa: Limite de sucessos atingido. Interrompendo o envio.');
         break;
       }
       // Incrementar o offset para a próxima página
@@ -265,18 +265,18 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
     }
 
     console.log(
-      `|| Envio em massa: Processamento concluído. Total de contatos carregados: ${totalCarregados}, sucessos: ${totalSucessos}, falhas: ${totalFalhas}`
+      `[WAt] || Envio em massa: Processamento concluído. Total de contatos carregados: ${totalCarregados}, sucessos: ${totalSucessos}, falhas: ${totalFalhas}`
     );
 
     return { totalCarregados, sucessos: totalSucessos, falhas: totalFalhas };
   } catch (erro) {
-    console.error(`[WAt]Erro ao executar a função: ${erro.message}`);
+    console.error(`[WAt] || Envio em massa: Erro ao executar a função: ${erro.message}`);
     throw erro;
   }
 }
 
 function gerarMensagensParaEnvio(contatos, mensagemBase) {
-  console.log('[WAt]|| Envio em massa: Iniciando a geração de mensagens para os contatos...');
+  console.log('[WAt] || Envio em massa: Iniciando a geração de mensagens para os contatos...');
 
   const contacts = contatos.map(({ telefone, nome_cliente, id_cliente }) => {
    // Pega apenas o primeiro nome do contato
@@ -294,13 +294,13 @@ function gerarMensagensParaEnvio(contatos, mensagemBase) {
     };
   });
 
-  console.log('[WAt]|| Envio em massa: Mensagens geradas para todos os contatos.');
+  console.log('[WAt] || Envio em massa: Mensagens geradas para todos os contatos.');
   return { contacts };
 }
 
 const atualizarStatusEnvio = async ({ idCliente, idMensagem, supabase, credenciaisSupabase}) => {
   if (!idCliente || !idMensagem || !supabase) {
-    console.warn('⚠️ Dados insuficientes para atualizar status de envio.');
+    console.warn('[WAt] || Envio em massa: ⚠️ Dados insuficientes para atualizar status de envio.');
     return;
   }
 
@@ -312,9 +312,9 @@ const atualizarStatusEnvio = async ({ idCliente, idMensagem, supabase, credencia
     .eq('id_cliente', idCliente);
 
   if (error) {
-    console.error(`Erro ao atualizar status do id_cliente ${idCliente}:`, error.message);
+    console.error(`[WAt] || Envio em massa: Erro ao atualizar status do id_cliente ${idCliente}:`, error.message);
   } else {
-    console.log(`Status de envio atualizado para o id_cliente ${idCliente}`);
+    console.log(`[WAt] || Envio em massa: Status de envio atualizado para o id_cliente ${idCliente}`);
   }
 };
 
@@ -326,7 +326,7 @@ async function notificarPausa() {
     await enviarMensagemAPI(
       credenciaisWAPI.credenciaisWAPI,
       '5581996948615',
-      `##ENVIO EM MASSA: 🔴 O envio foi pausado. Pode recomeçar.`,
+      `|| Envio em massa: 🔴 O envio foi pausado. Pode recomeçar.`,
       'Pause nos envios - enviando para Livia',
       null,
       null // não atualizamos chat pois é uma notificação interna
@@ -340,7 +340,7 @@ async function delayComVerificacao(tempoTotalMs, intervaloMs = 5000) {
   while (Date.now() - inicio < tempoTotalMs) {
     // Verifica se o serviço foi pausado durante o delay
     if (!controleExecucao.getEstado()) {
-      console.log(`##ENVIO EM MASSA: Serviço pausado durante o delay.`);
+      console.log(`[WAt] || Envio em massa: Serviço pausado durante o delay.`);
 
       await notificarPausa();
 

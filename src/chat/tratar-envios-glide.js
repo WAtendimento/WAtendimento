@@ -6,7 +6,7 @@ async function tratarEnviosGlide(dados, chip) {
   const ehEnvioDoGlide = dados?.fromMe === true && dados?.idMensagem === 'Envio do Sistema' && dados?.usuarioNumero && dados?.connectedPhone;
 
   if (!ehEnvioDoGlide) {
-    console.log('⛔️ Não é Glide, saindo da função.');
+    console.log('[WAt] ⛔️ Não é Glide, saindo da função.');
     return false;
   }
 
@@ -36,21 +36,21 @@ async function tratarEnviosGlide(dados, chip) {
     });
 
     if (!resultado?.sucesso) {
-      console.error('❌ Falha ao enviar a mensagem. Verifique as credenciais ou conteúdo.');
+      console.error('[WAt] ❌ Falha ao enviar a mensagem. Verifique as credenciais ou conteúdo.');
       return false;
     }
 
-    console.log('✅ Mensagem enviada com sucesso.');
+    console.log('[WAt] ✅ Mensagem enviada com sucesso.');
     return true;
   } catch (erro) {
-    console.error('💥 Erro inesperado ao enviar mensagem:', erro);
+    console.error('[WAt] 💥 Erro inesperado ao enviar mensagem:', erro);
     return false;
   }
 }
 
 function identificarTipoMensagem(conteudo) {
   if (typeof conteudo !== 'string') {
-    console.log('🔎 Conteúdo não é string, retornando "texto"');
+    console.log('[WAt] 🔎 Conteúdo não é string, retornando "texto"');
     return 'texto';
   }
 
@@ -59,12 +59,12 @@ function identificarTipoMensagem(conteudo) {
   const isUrl = url.startsWith('https://');
 
   if (isUrl && (url.includes('.mp3') || url.includes('.ogg'))) {
-    console.log('🎧 Detected áudio');
+    console.log('[WAt] 🎧 Detected áudio');
     return 'audio';
   }
 
   if (isUrl && (url.includes('.png') || url.includes('.jpg') || url.includes('.jpeg'))) {
-    console.log('🖼️ Detected imagem');
+    console.log('[WAt] 🖼️ Detected imagem');
     return 'imagem';
   }
 
@@ -88,7 +88,7 @@ module.exports = { tratarEnviosGlide };
 //     mensagem: 'https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/kHKRQoSFoytgQIFTZnSX/pub/jn6KJK4srkubq4Tayrzf.mp3',
 //   };
 
-//   console.log('🧪 Iniciando execução de teste...');
+//   console.log('[WAt] 🧪 Iniciando execução de teste...');
 //   const resultado = await tratarEnviosGlide(dados, chip);
-//   console.log('🎯 Resultado final do envio:', resultado);
+//   console.log('[WAt] 🎯 Resultado final do envio:', resultado);
 // })();

@@ -77,7 +77,7 @@ async function uploadParaSupabase(entrada, supabase) {
   });
 
   if (error) {
-    console.error('❌ Erro ao fazer upload para o Supabase:', error.message);
+    console.error('[WAt] ❌ Erro ao fazer upload para o Supabase:', error.message);
     throw error;
   }
 
@@ -93,8 +93,8 @@ module.exports = { uploadParaSupabase };
 //     const urlNova = await uploadParaSupabase(
 //       'https:/....
 //     );
-//     console.log('🔗 URL final no Supabase:', urlNova);
+//     console.log('[WAt] 🔗 URL final no Supabase:', urlNova);
 //   } catch (erro) {
-//     console.error('❌ Erro no upload:', erro.message);
+//     console.error('[WAt] ❌ Erro no upload:', erro.message);
 //   }
 // })();

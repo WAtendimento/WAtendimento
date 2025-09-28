@@ -17,15 +17,15 @@ async function buscarChip(tabela, supabase, connectedPhone) {
     const resultadoConsulta = await buscarNoSupabase(supabase, tabela, filtros, camposSelecionados, true);
 
     if (!resultadoConsulta || resultadoConsulta.length === 0) {
-      console.warn(`Nenhum chip encontrado na tabela "${tabela}" para o telefone ${connectedPhone}.`);
+      console.warn(`[WAt] Nenhum chip encontrado na tabela "${tabela}" para o telefone ${connectedPhone}.`);
       return null;
     }
 
     const chip = resultadoConsulta[0];
-    console.log(`✅ Chip encontrado: ID ${chip.id_chip}`);
+    console.log(`[WAt] ✅ Chip encontrado: ID ${chip.id_chip}`);
     return chip;
   } catch (error) {
-    console.error('Erro ao buscar chip no Supabase:', error.message);
+    console.error('[WAt] Erro ao buscar chip no Supabase:', error.message);
     return null;
   }
 }

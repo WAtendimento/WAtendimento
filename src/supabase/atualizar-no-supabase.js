@@ -85,7 +85,7 @@ async function atualizarNoSupabase(
 
         return dataAtualizada || { message: "Dados atualizados com sucesso!" };
       } else {
-        console.log("[WAt][WAt] Nenhum registro encontrado para atualizar.");
+        console.log("[WAt] Nenhum registro encontrado para atualizar.");
       }
 
       return { message: "Nenhum registro encontrado para atualizar." };

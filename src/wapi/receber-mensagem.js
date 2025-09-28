@@ -131,7 +131,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     );
     console.log("[WAt]Resultado da chamada ao integraBot:", resultado);
 
-    return dadosExtraidos;
+    return resultado;
   } catch (error) {
     console.error('[WAt]Erro ao processar o JSON:', error.message, dadosExtraidos.connectedPhone);
     console.error('[WAt]Detalhes do erro:', error.stack);

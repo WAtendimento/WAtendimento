@@ -40,8 +40,8 @@ function temLatitudeLongitude(texto) {
 // Função auxiliar para testes
 function testar(nome, esperado, resultado) {
   const ok = esperado === resultado;
-  console.log(`${ok ? '✅' : '❌'} ${nome} → ${resultado} (esperado: ${esperado})`);
-  console.assert(ok, `Erro em: ${nome}`);
+  console.log(`[WAt] ${ok ? '✅' : '❌'} ${nome} → ${resultado} (esperado: ${esperado})`);
+  console.assert(ok, `[WAt] Erro em: ${nome}`);
 }
 
 // // Casos dentro do raio (espera true)
@@ -57,8 +57,8 @@ function testar(nome, esperado, resultado) {
 // const entrada = "Latitude: -23.55097, Longitude: -46.633308, Data e Hora: 2025-05-28T15:20:00Z";
 // const { latitude, longitude } = extrairLatLon(entrada);
 
-// console.log("Latitude:", latitude);   // -23.55052
-// console.log("Longitude:", longitude); // -46.633308
+// console.log("[WAt] Latitude:", latitude);   // -23.55052
+// console.log("[WAt] Longitude:", longitude); // -46.633308
 
 // console.log(temLatitudeLongitude("Coordenadas: Latitude: -23.5, Longitude: -46.6")); // true
 // console.log(temLatitudeLongitude("Latitude: -23.5")); // false

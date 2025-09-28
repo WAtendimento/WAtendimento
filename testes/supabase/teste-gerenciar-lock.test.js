@@ -30,29 +30,29 @@ const supabase = createClient(credenciaisSupabase.table_data.url,
 //   const telefone = '558188961959';
 //   const id_chip = '1';
 
-//   console.log('--- Iniciando teste de lock ---');
+//   console.log('[WAt] --- Iniciando teste de lock ---');
 
-//   console.log('Tentando adquirir lock...');
+//   console.log('[WAt] Tentando adquirir lock...');
 //   const lockOk = await tentaAdquirirLock(supabase, telefone, tabela, id_chip);
-//   console.log('Resultado adquirir lock:', lockOk);
+//   console.log('[WAt] Resultado adquirir lock:', lockOk);
 
 //   if (lockOk) {
-//     console.log('Lock adquirido com sucesso!');
-//     console.log('Agora testando liberar lock...');
+//     console.log('[WAt] Lock adquirido com sucesso!');
+//     console.log('[WAt] Agora testando liberar lock...');
 
 //     const liberaOk = await liberaLock(supabase, tabela, telefone, id_chip);
-//     console.log('Resultado liberar lock:', liberaOk);
+//     console.log('[WAt] Resultado liberar lock:', liberaOk);
 
 //     if (liberaOk) {
-//       console.log('Lock liberado com sucesso!');
+//       console.log('[WAt] Lock liberado com sucesso!');
 //     } else {
-//       console.log('Falha ao liberar lock.');
+//       console.log('[WAt] Falha ao liberar lock.');
 //     }
 //   } else {
-//     console.log('Não conseguiu adquirir lock. Talvez já esteja em uso.');
+//     console.log('[WAt] Não conseguiu adquirir lock. Talvez já esteja em uso.');
 //   }
 
-//   console.log('--- Fim do teste ---');
+//   console.log('[WAt] --- Fim do teste ---');
 // })();
 
 
@@ -61,21 +61,21 @@ async function testeLocks() {
   const tabela = "maxplural_contatos";       // exemplo de tabela
   const id_chip = 1;                     // id_chip de teste
 
-  console.log("=== [TESTE LOCKS] ===");
-  //console.log("Telefone base:", telefoneTeste);
-  //console.log("Variações geradas:", gerarVariacoesDeTelefone(telefoneTeste));
+  console.log("[WAt] === [TESTE LOCKS] ===");
+  //console.log("[WAt] Telefone base:", telefoneTeste);
+  //console.log("[WAt] Variações geradas:", gerarVariacoesDeTelefone(telefoneTeste));
 
-  console.log("\n🔒 Testando adquirir lock...");
+  console.log("\n[WAt] 🔒 Testando adquirir lock...");
   const lockOk = await tentaAdquirirLock(supabase, telefoneTeste, tabela, id_chip);
-  console.log("Resultado final adquirir lock:", lockOk);
+  console.log("[WAt] Resultado final adquirir lock:", lockOk);
 
   delay(2000); // espera 2 segundos
 
-  console.log("\n🔓 Testando liberar lock...");
+  console.log("\n[WAt] 🔓 Testando liberar lock...");
   const liberaOk = await liberaLock(supabase, tabela, telefoneTeste, id_chip);
-  console.log("Resultado final liberar lock:", liberaOk);
+  console.log("[WAt] Resultado final liberar lock:", liberaOk);
 
-  console.log("=== [FIM TESTE LOCKS] ===");
+  console.log("[WAt] === [FIM TESTE LOCKS] ===");
 }
 
 testeLocks().catch(console.error);
