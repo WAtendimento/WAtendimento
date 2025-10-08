@@ -15,6 +15,7 @@ const { imagemParaTexto } = require('../vision/detector-texto');
  */
 const { buscarCredenciaisWAPIdoChip } = require('./buscar-credenciais-wapi-do-chip');
 const { baixarAudioETranscrever, baixarMedia } = require('./baixar-media-wapi');
+const { resolverNumeroUsuario } = require('../utils/resolver-numero-usuario');
 /**
  * Funções de integração com o Supabase
  */
@@ -123,7 +124,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     const resultado = await integraBot(
       mensagemFormatada,
       dadosExtraidos.pushName,
-      dadosExtraidos.idRemoto,
+      dadosExtraidos.usuarioNumero,
       dadosExtraidos.connectedPhone,
       credenciaisOpenAi,
       credenciaisSupabase,
@@ -146,9 +147,17 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
 // Função para extrair dados relevantes do JSON
 function extrairDados(json) {
+
+  const chatId = json.chat?.id || null;
+  const senderId = json.sender?.senderLid || null;
+  const senderAccountType = json.msgContent?.messageContextInfo.deviceListMetadata.senderAccountType || null;
+  const fromMe = json.fromMe ?? null;
+
+  const usuarioNumero = resolverNumeroUsuario(chatId, senderId, senderAccountType, fromMe);
+  
   return {
-    idRemoto: json.sender?.id || null,
-    usuarioNumero: json.chat?.id || null,
+    usuarioNumero: usuarioNumero,
+    
     mensagem:
       json.msgContent?.conversation || json.msgContent?.extendedTextMessage?.text || null,
     canonicalUrl: json.msgContent?.canonicalUrl || null,
@@ -157,7 +166,7 @@ function extrairDados(json) {
     tipoMensagem: json.event || null,
     idMensagem: json.messageId || null,
     timestampMensagem: json.moment || null,
-    fromMe: json.fromMe ?? null,
+    fromMe: fromMe,
     fromApi: json.fromApi ?? null,
     pushName: json.sender?.pushName || null,
     contactCardName: json.msgContent?.contactMessage?.displayName || null,
