@@ -149,11 +149,11 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 function extrairDados(json) {
 
   const chatId = json.chat?.id || null;
-  const senderId = json.sender?.senderLid || null;
-  const senderAccountType = json.msgContent?.messageContextInfo.deviceListMetadata.senderAccountType || null;
+  const senderLid = json.sender?.senderLid || null;
+  const senderRawId = json.sender?.id || null;
   const fromMe = json.fromMe ?? null;
 
-  const usuarioNumero = resolverNumeroUsuario(chatId, senderId, senderAccountType, fromMe);
+  const usuarioNumero = resolverNumeroUsuario(chatId, senderRawId, senderLid, fromMe);
   
   return {
     usuarioNumero: usuarioNumero,
