@@ -54,11 +54,10 @@ async function verificaEEnviaMensagem({
 }) {
   const logger = criaLogger(telefoneContato);
   const mensagensAcumuladas = acumulaMensagens(telefoneContato);
-  const telefone = { telefone: ['=', telefoneContato] };
+  const telefone = { identificador: ['=', telefoneContato] };
 
   const filtrosComTelefone = {
     ...filtrosAdicionaisContato,
-    telefone: telefoneContato,
     identificador: telefoneContato,
   };
 

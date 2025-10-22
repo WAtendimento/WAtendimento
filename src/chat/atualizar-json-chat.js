@@ -42,7 +42,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
       supabase,
       'chats_watendimento',
       {
-        telefone: ['=', telefoneCliente],
+        identificador: ['=', telefoneCliente],
         id_chip: ['=', id_chip],
         bot: ['=', bot],
       },
@@ -70,13 +70,13 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
       supabase,
       'chats_watendimento',
       {
-        telefone: telefoneCliente,
+        identificador: telefoneCliente,
         id_chip: id_chip,
         json_conversa: jsonConversa,
         bot: bot,
       },
       true,
-      ['id_chip', 'telefone', 'bot']
+      ['id_chip', 'identificador', 'bot']
     );
 
     console.log('[WAt] Tabela contato normal: ', tabelaContato);
@@ -87,7 +87,7 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
       supabaseClient,
       tabelaContato,
       {
-        telefone: telefoneCliente,
+        identificador: telefoneCliente,
         id_chip: id_chip,
       },
       {json_conversa: jsonConversa}
