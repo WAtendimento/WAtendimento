@@ -7,8 +7,8 @@ const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
     return chaves.some(chave => msg.includes(chave.toLowerCase()));
   }
 
-  async function ehModoTeste(credenciaisSupabase) {
-    const rows = await buscarNoSupabase(
+  async function ehModoTeste(supabase, credenciaisSupabase) {
+    const rows = await buscarNoSupabase(supabase, 
       credenciaisSupabase.table_data.table_configs,
       { tipo_config: ['=', 'modo_teste'] }, // <- formato exigido
       ['valor_config'] // opcional: seleciona só o necessário
@@ -20,10 +20,10 @@ const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
   }
 
 
-  async function ehTelefoneTeste(credenciaisSupabase, telefoneContato) {
+  async function ehTelefoneTeste(supabase, credenciaisSupabase, telefoneContato) {
     try {
 
-      const rows = await buscarNoSupabase(
+      const rows = await buscarNoSupabase(supabase, 
         credenciaisSupabase.table_data.table_configs,
         { tipo_config: ['=', 'telefone_teste'],
           valor_config: ['=', telefoneContato]

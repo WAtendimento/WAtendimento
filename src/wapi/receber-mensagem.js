@@ -77,12 +77,12 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     const usuarioNumero = resolverIdentificadorUsuario(dadosExtraidos);
 
     // Verificar se o sistema está em modo de teste
-    const autorizado = await ehTelefoneTeste(credenciaisSupabase, usuarioNumero);
+    const autorizado = await ehTelefoneTeste(supabase, credenciaisSupabase, usuarioNumero);
 
     if(dadosExtraidos.fromMe !== true) {
       console.log(`[WAt] Número do contato: ${usuarioNumero} | autorizado?`, autorizado);
 
-      if (await ehModoTeste(credenciaisSupabase)) {
+      if (await ehModoTeste(supabase, credenciaisSupabase)) {
         console.log('[WAt] Modo TESTE ativo no sistema.');
 
         if (autorizado) {
@@ -130,7 +130,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
       console.warn('[WAt] Nenhum chip encontrado para', dadosExtraidos.connectedPhone);
       return null;
     }
-    
+
     console.log('[WAt]Chip encontrado:', chip);
     // Tratar mensagens via Glide
     await tratarEnviosGlide(dadosExtraidos, chip);
