@@ -39,7 +39,10 @@ async function enviarMensagemAPI(
     );
   }
 
-  if (!number.startsWith("55")) {
+  // Só adiciona o DDI se for um número puramente numérico com 11 dígitos (ou 9 ou 10)
+  const apenasNumeros = /^\d+$/;
+
+  if (apenasNumeros.test(number) && !number.startsWith("55")) {
     number = `55${number}`;
   }
 

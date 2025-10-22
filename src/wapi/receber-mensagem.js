@@ -5,6 +5,7 @@ const { urlParaBase64 } = require('../utils/converter-url-para-base64');
 const { mensagemDeEntrada } = require('../utils/formatador-mensagens');
 const { extrairContactCardNumber } = require('../utils/extrair-numero-contato');
 const { buscarChip } = require('../utils/buscar-chip');
+const { ehModoTeste, ehTelefoneTeste, mensagemComChave } = require('./resolver-modo-teste');
 /**
  * Funções de processamento de imagem
  */
@@ -15,11 +16,13 @@ const { imagemParaTexto } = require('../vision/detector-texto');
  */
 const { buscarCredenciaisWAPIdoChip } = require('./buscar-credenciais-wapi-do-chip');
 const { baixarAudioETranscrever, baixarMedia } = require('./baixar-media-wapi');
-const { resolverNumeroUsuario } = require('../utils/resolver-numero-usuario');
+//const { resolverNumeroUsuario } = require('../utils/resolver-numero-usuario');
+const { resolverIdentificadorUsuario } = require('./resolver-identificador-usuario');
 /**
  * Funções de integração com o Supabase
  */
 const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
+const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
 
 /**
  * Funções de chat
@@ -36,7 +39,7 @@ const { atualizarJSONChat } = require('../chat/atualizar-json-chat');
 
 async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, supabase, integraBot, bot) {
 
-  console.log('[WAt]Iniciando processamento da mensagem recebida...');
+  console.log('[WAt] Iniciando processamento da mensagem recebida...');
   // console.log('[WAt]JSON recebido:', JSON.stringify(json, null, 2));
   // console.log('[WAt]Credenciais OpenAI:', JSON.stringify(credenciaisOpenAi, null, 2));
   // console.log('[WAt]Credenciais Supabase:', JSON.stringify(credenciaisSupabase, null, 2));
@@ -46,61 +49,91 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
   try {
     // Verificar se o JSON é válido
     if (!json || typeof json !== 'object') {
-      console.error('[WAt]Entrada inválida: JSON ausente ou mal formatado.');
+      console.error('[WAt] Entrada inválida: JSON ausente ou mal formatado.');
       throw new Error('Entrada inválida: JSON ausente ou mal formatado.');
     }
 
     if (json.fromApi === true) {
-      console.log('[WAt]Mensagem enviada pela API. Nenhum processamento será feito.');
+      console.log('[WAt] Mensagem enviada pela API. Nenhum processamento será feito.');
       return null;
     }
 
     // Verificar se a mensagem é de um grupo
     if (json.isGroup === true) {
-      console.log('[WAt]Mensagem de grupo detectada. Nenhum processamento será feito.');
+      console.log('[WAt] Mensagem de grupo detectada. Nenhum processamento será feito.');
       return null;
     }
 
     // Extrair dados relevantes do JSON
     dadosExtraidos = extrairDados(json);
-    console.log('[WAt]Mensagem recebida e extraída:', dadosExtraidos);
+    console.log('[WAt] Mensagem recebida e extraída:', dadosExtraidos);
     
     // Buscando credenciais WAPI do chip
     const credenciaisWAPI = await buscarCredenciaisWAPIdoChip(dadosExtraidos.connectedPhone, supabase, credenciaisSupabase);
     // console.log('[WAt]CredenciaisWAPI:', credenciaisWAPI);
 
-    // TO-DO Adicionar condição com parametro para habilitar/desabilitar numeros de teste
+    // OBS: A variável usuarioNumero representa o "identificador" do usuário.
+    // Ela pode ser um telefone ou um LID, dependendo do que estiver disponível.
+    const usuarioNumero = resolverIdentificadorUsuario(dadosExtraidos);
+
+    // Verificar se o sistema está em modo de teste
+    const autorizado = await ehTelefoneTeste(credenciaisSupabase, usuarioNumero);
+
+    if(dadosExtraidos.fromMe !== true) {
+      console.log(`[WAt] Número do contato: ${usuarioNumero} | autorizado?`, autorizado);
+
+      if (await ehModoTeste(credenciaisSupabase)) {
+        console.log('[WAt] Modo TESTE ativo no sistema.');
+
+        if (autorizado) {
+          console.log('[WAt] Número autorizado. Prosseguindo com integrações/efeitos.');
+        } else {
+          console.log('[WAt] Número NÃO autorizado. Ignorando integrações/efeitos.');
+          return null;
+        }
+
+      } else {
+        console.log('[WAt] Modo TESTE inativo no sistema, Prosseguindo com integrações/efeitos.');
+      }
+    } else {
+      console.log(`[WAt] FromMe=true, pulando verificação de autorização.`);
+    }
 
     // Interpretar a mensagem recebida
-    console.log('[WAt]Interpretando mensagem...');
+    console.log('[WAt] Interpretando mensagem...');
     let mensagemCorreta = await interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisOpenAi);
     if (!mensagemCorreta) {
-      console.log('[WAt]Nenhuma mensagem interpretada. Encerrando processamento.');
+      console.log('[WAt] Nenhuma mensagem interpretada. Encerrando processamento.');
       return null;
     }
 
-    console.log('[WAt]Mensagem interpretada:', mensagemCorreta);
+    // TRATAMENTO DE MENSAGENS DE ATIVAÇÃO/INATIVAÇÃO DA IA
+    // console.log('>>> Verificando se a mensagem é de encerramento de contato...');
+    const resultadoChavesIA = await tratarComandosDeAtivacao(dadosExtraidos, mensagemCorreta, usuarioNumero, credenciaisSupabase);
+
+    if (resultadoChavesIA.handled) {
+      return null; // mantém o comportamento atual
+    }
+
+    console.log('[WAt] Mensagem interpretada:', mensagemCorreta);
 
     // Formatar a mensagem para envio
     const mensagemFormatada = await mensagemDeEntrada(mensagemCorreta);
-
-    // Tratar comandos de ativação/inativação do contato
-    await tratarComandosDeAtivacao({
-      dadosExtraidos,
-      mensagemCorreta,
-      supabase,
-      credenciaisSupabase,
-    });
 
     // Buscar chip
     const chip = await buscarChip(
       credenciaisSupabase.table_data.table_chips,
       supabase,
       dadosExtraidos.connectedPhone);
-
+    
+    if (!chip?.id_chip) {
+      console.warn('[WAt] Nenhum chip encontrado para', dadosExtraidos.connectedPhone);
+      return null;
+    }
+    
     console.log('[WAt]Chip encontrado:', chip);
     // Tratar mensagens via Glide
-    tratarEnviosGlide(dadosExtraidos, chip);
+    await tratarEnviosGlide(dadosExtraidos, chip);
 
     // Verificar se a mensagem é um áudio
     const ehAudio = dadosExtraidos.audioMessage ? '[Áudio] ' : '';
@@ -109,7 +142,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     console.log('[WAt]Atualizando JSON do chat...');
     await atualizarJSONChat({
       id_chip: chip.id_chip,
-      numeroContato: dadosExtraidos.usuarioNumero,
+      numeroContato: usuarioNumero,
       connectedPhone: dadosExtraidos.connectedPhone,
       fromMe: dadosExtraidos.fromMe,
       nomeContato: dadosExtraidos.pushName,
@@ -124,7 +157,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     const resultado = await integraBot(
       mensagemFormatada,
       dadosExtraidos.pushName,
-      dadosExtraidos.usuarioNumero,
+      usuarioNumero,
       dadosExtraidos.connectedPhone,
       credenciaisOpenAi,
       credenciaisSupabase,
@@ -134,6 +167,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
     return resultado;
   } catch (error) {
+    const conn = dadosExtraidos?.connectedPhone || 'desconhecido';
     console.error('[WAt]Erro ao processar o JSON:', error.message, dadosExtraidos.connectedPhone);
     console.error('[WAt]Detalhes do erro:', error.stack);
     return null;
@@ -147,26 +181,20 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
 // Função para extrair dados relevantes do JSON
 function extrairDados(json) {
-
-  const chatId = json.chat?.id || null;
-  const senderLid = json.sender?.senderLid || null;
-  const senderRawId = json.sender?.id || null;
-  const fromMe = json.fromMe ?? null;
-
-  const usuarioNumero = resolverNumeroUsuario(chatId, senderRawId, senderLid, fromMe);
   
   return {
-    usuarioNumero: usuarioNumero,
-    
-    mensagem:
-      json.msgContent?.conversation || json.msgContent?.extendedTextMessage?.text || null,
+    chatId: json.chat?.id || null,
+    senderLid: json.sender?.senderLid || null,
+    senderId: json.sender?.senderId || null,
+    senderRawId: json.sender?.id || null,
+    mensagem: json.msgContent?.conversation || json.msgContent?.extendedTextMessage?.text || null,
     canonicalUrl: json.msgContent?.canonicalUrl || null,
     textoLinkImagem: json.msgContent?.description || null,
     tituloLinkImagem: json.msgContent?.title || null,
     tipoMensagem: json.event || null,
     idMensagem: json.messageId || null,
     timestampMensagem: json.moment || null,
-    fromMe: fromMe,
+    fromMe: json.fromMe ?? null,
     fromApi: json.fromApi ?? null,
     pushName: json.sender?.pushName || null,
     contactCardName: json.msgContent?.contactMessage?.displayName || null,
@@ -249,23 +277,55 @@ async function interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisO
   return null;
 }
 
-// Função para tratar comandos de ativação/inativação do contato
-async function tratarComandosDeAtivacao({ dadosExtraidos, mensagemCorreta, supabase, credenciaisSupabase }) {
-
-  // TO-DO Adicionar no banco ou em variaveis passadas como parametro
-  // as palavras-chave que encerram o contato.
-
-  if (dadosExtraidos.fromMe && !dadosExtraidos.fromApi && mensagemCorreta) {
-    const telefone = dadosExtraidos.usuarioNumero?.toString();
-    const tabela = credenciaisSupabase.table_data.table_contatos;
-    const filtros = { telefone };
-
-    if (mensagemCorreta.includes(":)") || mensagemCorreta.includes("(:")) {
-      await atualizarNoSupabase(supabase, tabela, filtros, { inativo: true }, false);
-    } else if (mensagemCorreta.includes("Obrigada! Qualquer coisa, estamos a disposição")) {
-      await atualizarNoSupabase(supabase, tabela, filtros, { inativo: false }, false);
-    }
+async function tratarComandosDeAtivacao(dadosExtraidos, mensagemCorreta, usuarioNumero, credenciaisSupabase) {
+  if (!(dadosExtraidos?.fromMe === true && dadosExtraidos?.fromApi !== true)) {
+    return { handled: false, action: null };
   }
+
+  console.log('[WAt] fromMe=true & fromApi!=true para:', usuarioNumero);
+  console.log('[WAt] Buscando chaves de inativação/ativação no Supabase...');
+
+  const buscarChaves = async (tipo_config) => {
+    const registros = await buscarNoSupabase(
+      credenciaisSupabase.table_data.table_configs,
+      { tipo_config: ['=', tipo_config] },
+      ['valor_config']
+    );
+    return (registros || [])
+      .map((r) => String(r.valor_config || '').trim())
+      .filter(Boolean);
+  };
+
+  const [chavesInativacao, chavesAtivacao] = await Promise.all([
+    buscarChaves('chave_inativacao_ia'),
+    buscarChaves('chave_ativacao_ia'),
+  ]);
+
+  // console.log('[WAt] inativação: qtd=', chavesInativacao.length, 'ex=', chavesInativacao.slice(0, 3));
+  // console.log('[WAt] ativação  : qtd=', chavesAtivacao.length, 'ex=', chavesAtivacao.slice(0, 3));
+  // console.log('[WAt] mensagem   :', (mensagemCorreta || '').slice(0, 120));
+
+  const tabelaContatos = credenciaisSupabase.table_data.table_contatos;
+
+  const bateInativacao = mensagemComChave(mensagemCorreta, chavesInativacao);
+  const bateAtivacao = !bateInativacao && mensagemComChave(mensagemCorreta, chavesAtivacao);
+
+  console.log('[WAt] match -> inativacao?', bateInativacao, '| ativacao?', bateAtivacao);
+
+  if (bateInativacao) {
+    console.log('[WAt] Mensagem de assunção recebida. Inativando no Supabase...');
+    await atualizarNoSupabase(tabelaContatos, { identificador: usuarioNumero }, { inativo: true }, false);
+    return { handled: true, action: 'inativado' };
+  }
+
+  if (bateAtivacao) {
+    console.log('[WAt] Mensagem de reativação recebida. Ativando no Supabase...');
+    await atualizarNoSupabase(tabelaContatos, { identificador: usuarioNumero }, { inativo: false }, false);
+    return { handled: true, action: 'ativado' };
+  }
+
+  console.log('[WAt] mensagem é fromMe, mas sem palavras-chave de (des)ativação.');
+  return { handled: true, action: null };
 }
 
 module.exports = { receberMensagem };

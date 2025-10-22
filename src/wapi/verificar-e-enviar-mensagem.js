@@ -59,6 +59,7 @@ async function verificaEEnviaMensagem({
   const filtrosComTelefone = {
     ...filtrosAdicionaisContato,
     telefone: telefoneContato,
+    identificador: telefoneContato,
   };
 
   // console.log('[WAt]mensagem', mensagem);
@@ -126,7 +127,12 @@ async function verificaEEnviaMensagem({
           false
         );
 
-        await liberaLock(supabase, tabela, telefoneContato, filtrosAdicionaisContato.id_chip);
+        try {
+          await liberaLock(supabase, tabela, telefoneContato, filtrosAdicionaisContato.id_chip);
+        } catch (erroLibera) {
+          logger.error('Erro ao liberar lock');
+          logger.error(erroLibera?.stack || erroLibera?.message || erroLibera);
+        }
 
         // console.log('[WAt]Lock liberado');
 
@@ -155,10 +161,17 @@ async function verificaEEnviaMensagem({
     }
   } catch (erro) {
     logger.error('Erro inesperado na função verificaEEnviaMensagem:', erro);
+    logger.error(erro?.stack || erro?.message || erro);
+    
     // console.error('[WAt]Erro inesperado na função verificaEEnviaMensagem:', erro);
 
     // Em caso de erro, tenta liberar o lock (por segurança)
-    await liberaLock(tabela, telefoneContato, );
+    try {
+      await liberaLock(supabase, tabela, telefoneContato, filtrosAdicionaisContato.id_chip);
+    } catch (erroLibera) {
+      logger.error('Erro ao liberar lock dentro do catch principal:');
+      logger.error(erroLibera?.stack || erroLibera?.message || erroLibera);
+    }
 
     return {
       sucesso: false,

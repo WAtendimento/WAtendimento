@@ -56,7 +56,7 @@ async function criaThreadeEnviaMensagem({ data }) {
 
   const filtrosComTelefone = {
     ...filtrosAdicionais,
-    telefone: telefoneContato,
+    identificador: telefoneContato,
   };
 
   const filtrosFormatados = Object.entries(filtrosComTelefone).reduce(
@@ -250,7 +250,7 @@ async function criaThreadeEnviaMensagem({ data }) {
   try {
     let threadId;
     const filtros = {
-      telefone: ["=", telefoneContato.toString()],
+      identificador: ["=", telefoneContato.toString()],
       ...filtrosFormatados,
     };
     const dadosOpenAIContato = await withTimeout(
@@ -272,7 +272,7 @@ async function criaThreadeEnviaMensagem({ data }) {
       threadId = await threadData;
       //TO-DO verificar necessidade e retirar
       let registro = {
-        telefone: telefoneContato,
+        identificador: telefoneContato,
         openai_thread_id: threadId,
       };
 
@@ -301,7 +301,7 @@ async function criaThreadeEnviaMensagem({ data }) {
     );
 
     let registro = {
-      telefone: telefoneContato,
+      identificador: telefoneContato,
       openai_id_ultima_mensagem: assistantResponse.lastMessageId,
     };
 

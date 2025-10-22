@@ -93,39 +93,46 @@ async function atualizarNoSupabase(
 
     if (filtros[nomeFiltroTelefone]) {
       const telefoneOriginal = filtros[nomeFiltroTelefone];
-      const variacoes = gerarVariacoesDeTelefone(telefoneOriginal);
-      // Usando um for para testar cada variação individualmente
-      for (const variacaoTelefone of variacoes) {
-        // Crie uma nova consulta para cada iteração
-        let consultaComVariacao = supabase
-          .from(tabela)
-          .select("*")
-          .eq(nomeFiltroTelefone, variacaoTelefone);
 
-        Object.entries(filtros).forEach(([campo, valor]) => {
-          if (campo !== nomeFiltroTelefone) {
-            consultaComVariacao = consultaComVariacao.eq(campo, valor);
+      const regexTelefone = /^55\d{10,13}$/;
+
+      if (!regexTelefone.test(telefoneOriginal)) {
+        console.log(">>> Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
+      } else {
+        const variacoes = gerarVariacoesDeTelefone(telefoneOriginal);
+        // Usando um for para testar cada variação individualmente
+        for (const variacaoTelefone of variacoes) {
+          // Crie uma nova consulta para cada iteração
+          let consultaComVariacao = supabase
+            .from(tabela)
+            .select("*")
+            .eq(nomeFiltroTelefone, variacaoTelefone);
+
+          Object.entries(filtros).forEach(([campo, valor]) => {
+            if (campo !== nomeFiltroTelefone) {
+              consultaComVariacao = consultaComVariacao.eq(campo, valor);
+            }
+          });
+
+          const { data: registros, error: erroConsulta } =
+            await consultaComVariacao;
+
+          if (erroConsulta) {
+            console.error(`[WAt]Erro ao verificar filtros: ${erroConsulta.message}`);
+            throw erroConsulta;
           }
-        });
 
-        const { data: registros, error: erroConsulta } =
-          await consultaComVariacao;
+          if (registros && registros.length > 0) {
+            registroEncontrado = registros[0];
 
-        if (erroConsulta) {
-          console.error(`[WAt]Erro ao verificar filtros: ${erroConsulta.message}`);
-          throw erroConsulta;
-        }
-
-        if (registros && registros.length > 0) {
-          registroEncontrado = registros[0];
-
-          // Atualiza o filtro de telefone para usar a variação encontrada
-          filtros[nomeFiltroTelefone] = variacaoTelefone;
-          // console.log(
-          //   "Variação de telefone encontrada na tabela",
-          //   filtros[nomeFiltroTelefone]
-          // );
-          break; // Sai do loop após encontrar o registro
+            // Atualiza o filtro de telefone para usar a variação encontrada
+            filtros[nomeFiltroTelefone] = variacaoTelefone;
+            // console.log(
+            //   "Variação de telefone encontrada na tabela",
+            //   filtros[nomeFiltroTelefone]
+            // );
+            break; // Sai do loop após encontrar o registro
+          }
         }
       }
     }

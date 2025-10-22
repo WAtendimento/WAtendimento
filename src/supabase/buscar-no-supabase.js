@@ -36,81 +36,89 @@ async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = 
 
   const chavesDosFiltros = Object.keys(filtros);
 
-  const nomeFiltro = ['telefone', 'connected_phone'];
+  const nomeFiltro = ['telefone', 'connected_phone', 'valor_config'];
   let contatoExistente = null;
 
   try {
     // Gerar variações de telefone, caso seja solicitado e o filtro seja de telefone
     if (usarVariacoesTelefone && nomeFiltro.some((filtro) => chavesDosFiltros.includes(filtro))) {
-      let contador = 0;
-      let variacoes = [];
-      nomeFiltro.forEach((filtro) => {
-        if (filtros[filtro]) {
-          variacoes = gerarVariacoesDeTelefone(filtros[filtro][1]);
-        }
-      });
 
-      for (const variacaoTelefone of variacoes) {
+      const valorOriginal = filtros[nomeFiltro][1];
+      const regexTelefone = /^55\d{10,13}$/;
+
+      if (!regexTelefone.test(valorOriginal)) {
+        console.log(">>> Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
+      } else {
+        let contador = 0;
+        let variacoes = [];
         nomeFiltro.forEach((filtro) => {
           if (filtros[filtro]) {
-            filtros[filtro][1] = gerarVariacoesDeTelefone(variacaoTelefone)[contador];
+            variacoes = gerarVariacoesDeTelefone(filtros[filtro][1]);
           }
         });
 
-        let query = supabase.from(tabela).select(camposSelecionados.length ? camposSelecionados.join(',') : '*');
-
-        // Aplicando filtros com operadores
-        Object.entries(filtros)
-          .filter(([_, condicao]) => condicao[1] !== null)
-          .forEach(([campo, condicao]) => {
-            const [operador, valor] = condicao;
-
-            switch (operador) {
-              case '=':
-                if (typeof valor === 'string') {
-                  // Use `ilike` para ignorar case quando o valor for string
-                  query = query.ilike(campo, `%${valor}%`);
-                } else {
-                  query = query.eq(campo, valor);
-                }
-                break;
-              case '>':
-                query = query.gt(campo, valor);
-                break;
-              case '>=':
-                query = query.gte(campo, valor);
-                break;
-              case '<':
-                query = query.lt(campo, valor);
-                break;
-              case '<=':
-                query = query.lte(campo, valor);
-                break;
-              case '!=':
-                query = query.neq(campo, valor);
-                break;
-              case 'not':
-                query = query.not(campo, 'is', valor);
-                break;
-              default:
-                throw new Error(`Operador "${operador}" não suportado para o campo "${campo}".`);
+        for (const variacaoTelefone of variacoes) {
+          nomeFiltro.forEach((filtro) => {
+            if (filtros[filtro]) {
+              filtros[filtro][1] = gerarVariacoesDeTelefone(variacaoTelefone)[contador];
             }
           });
 
-        if (limiteRegistros) {
-          query = query.limit(limiteRegistros);
+          let query = supabase.from(tabela).select(camposSelecionados.length ? camposSelecionados.join(',') : '*');
+
+          // Aplicando filtros com operadores
+          Object.entries(filtros)
+            .filter(([_, condicao]) => condicao[1] !== null)
+            .forEach(([campo, condicao]) => {
+              const [operador, valor] = condicao;
+
+              switch (operador) {
+                case '=':
+                  if (typeof valor === 'string') {
+                    // Use `ilike` para ignorar case quando o valor for string
+                    query = query.ilike(campo, `%${valor}%`);
+                  } else {
+                    query = query.eq(campo, valor);
+                  }
+                  break;
+                case '>':
+                  query = query.gt(campo, valor);
+                  break;
+                case '>=':
+                  query = query.gte(campo, valor);
+                  break;
+                case '<':
+                  query = query.lt(campo, valor);
+                  break;
+                case '<=':
+                  query = query.lte(campo, valor);
+                  break;
+                case '!=':
+                  query = query.neq(campo, valor);
+                  break;
+                case 'not':
+                  query = query.not(campo, 'is', valor);
+                  break;
+                default:
+                  throw new Error(`Operador "${operador}" não suportado para o campo "${campo}".`);
+              }
+            });
+
+          if (limiteRegistros) {
+            query = query.limit(limiteRegistros);
+          }
+
+          const { data, error } = await query;
+          if (data && data.length > 0) {
+            // Registro encontrado, salva os dados e quebra o loop
+            contatoExistente = data;
+            break;
+          }
+          continue;
         }
 
-        const { data, error } = await query;
-        if (data && data.length > 0) {
-          // Registro encontrado, salva os dados e quebra o loop
-          contatoExistente = data;
-          break;
-        }
-        continue;
+        contador++;
       }
-
-      contador++;
     }
 
     let query = supabase.from(tabela).select(camposSelecionados.length ? camposSelecionados.join(',') : '*');

@@ -27,7 +27,7 @@ async function buscaUltimaMensagemThread({ data }) {
   const logger = criaLogger(telefoneContato);
   const filtrosComTelefone = {
     ...filtrosAdicionaisUnicos,
-    telefone: telefoneContato,
+    identificador: telefoneContato,
   };
 
   try {
@@ -40,7 +40,7 @@ async function buscaUltimaMensagemThread({ data }) {
       {}
     );
 
-    const telefone = { telefone: ["=", telefoneContato] };
+    const telefone = { identificador: ["=", telefoneContato] };
 
     const filtros = Object.assign(telefone, filtrosFormatados);
     await new Promise((resolve) => setTimeout(resolve, 5000));
