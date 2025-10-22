@@ -55,13 +55,13 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
     if (json.fromApi === true) {
       console.log('[WAt] Mensagem enviada pela API. Nenhum processamento será feito.');
-      return null;
+      return { ignorado: true, motivo: 'Mensagem enviada pela própria API.' };
     }
 
     // Verificar se a mensagem é de um grupo
     if (json.isGroup === true) {
       console.log('[WAt] Mensagem de grupo detectada. Nenhum processamento será feito.');
-      return null;
+      return { ignorado: true, motivo: 'Mensagem proveniente de grupo.' };
     }
 
     // Extrair dados relevantes do JSON
@@ -89,7 +89,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
           console.log('[WAt] Número autorizado. Prosseguindo com integrações/efeitos.');
         } else {
           console.log('[WAt] Número NÃO autorizado. Ignorando integrações/efeitos.');
-          return null;
+          return { ignorado: true, motivo: '[WAt] Número não autorizado.' };
         }
 
       } else {
@@ -104,7 +104,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     let mensagemCorreta = await interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisOpenAi);
     if (!mensagemCorreta) {
       console.log('[WAt] Nenhuma mensagem interpretada. Encerrando processamento.');
-      return null;
+      return { ignorado: true, motivo: 'Mensagem sem conteúdo interpretável.' };
     }
 
     // TRATAMENTO DE MENSAGENS DE ATIVAÇÃO/INATIVAÇÃO DA IA
@@ -112,7 +112,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     const resultadoChavesIA = await tratarComandosDeAtivacao(dadosExtraidos, mensagemCorreta, usuarioNumero, credenciaisSupabase);
 
     if (resultadoChavesIA.handled) {
-      return null; // mantém o comportamento atual
+      return { tratado: true, acao: resultadoChavesIA.action || 'nenhuma', motivo: 'Mensagem de ativação/inativação processada.' };
     }
 
     console.log('[WAt] Mensagem interpretada:', mensagemCorreta);
@@ -128,7 +128,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     
     if (!chip?.id_chip) {
       console.warn('[WAt] Nenhum chip encontrado para', dadosExtraidos.connectedPhone);
-      return null;
+      return { ignorado: true, motivo: `Nenhum chip encontrado para ${dadosExtraidos.connectedPhone}.` };
     }
 
     console.log('[WAt]Chip encontrado:', chip);
@@ -170,7 +170,8 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     const conn = dadosExtraidos?.connectedPhone || 'desconhecido';
     console.error('[WAt]Erro ao processar o JSON:', error.message, dadosExtraidos.connectedPhone);
     console.error('[WAt]Detalhes do erro:', error.stack);
-    return null;
+    return { erro: true, mensagem: error.message, stack: error.stack };
+
   }
 }
 
