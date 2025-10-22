@@ -1,3 +1,4 @@
+const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
 
   function mensagemComChave(mensagem, chaves) {
     if (!mensagem) return false;
