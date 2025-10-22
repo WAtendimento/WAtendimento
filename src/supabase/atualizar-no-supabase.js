@@ -90,7 +90,7 @@ async function atualizarNoSupabase(
 
       return { message: "Nenhum registro encontrado para atualizar." };
     }
-
+    
     if (filtros[nomeFiltroTelefone]) {
       const telefoneOriginal = filtros[nomeFiltroTelefone];
 

@@ -43,7 +43,8 @@ async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = 
     // Gerar variações de telefone, caso seja solicitado e o filtro seja de telefone
     if (usarVariacoesTelefone && nomeFiltro.some((filtro) => chavesDosFiltros.includes(filtro))) {
 
-      const valorOriginal = filtros[nomeFiltro][1];
+      const chaveTelefone = nomeFiltro.find((k) => k in filtros);
+      const valorOriginal = filtros[chaveTelefone][1];
       const regexTelefone = /^55\d{10,13}$/;
 
       if (!regexTelefone.test(valorOriginal)) {
