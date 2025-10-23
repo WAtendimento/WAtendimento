@@ -163,9 +163,14 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
       credenciaisSupabase,
       supabase
     );
-    console.log("[WAt]Resultado da chamada ao integraBot:", resultado);
-
-    return resultado;
+      
+    if (resultado === null) {
+      console.log("[WAt] integraBot não retornou resposta (pode ser mensagem sem ação).");
+      return { ignorado: true, motivo: 'integraBot retornou null (sem resposta ou ação).' };
+    } else {
+      console.log("[WAt]Resultado da chamada ao integraBot:", resultado);
+      return { sucesso: true, resultado };
+    }
   } catch (error) {
     const conn = dadosExtraidos?.connectedPhone || 'desconhecido';
     console.error('[WAt]Erro ao processar o JSON:', error.message, dadosExtraidos.connectedPhone);
