@@ -5,21 +5,28 @@ function resolverIdentificadorUsuario(dadosExtraidos) {
 
     // 1️⃣ Tenta o telefone primeiro (prioritário)
     if (typeof dadosExtraidos.chatId === 'string' && regexTelefone.test(dadosExtraidos.chatId)) {
-      return dadosExtraidos.chatId;
+      return { identificador: dadosExtraidos.chatId, isTelefone: true };
     }
     if (typeof dadosExtraidos.senderId === 'string' && regexTelefone.test(dadosExtraidos.senderId)) {
-      return dadosExtraidos.senderId;
+      return { identificador: dadosExtraidos.senderId, isTelefone: true };
     }
     if (typeof dadosExtraidos.senderRawId === 'string' && regexTelefone.test(dadosExtraidos.senderRawId)) {
-      return dadosExtraidos.senderRawId;
+      return { identificador: dadosExtraidos.senderRawId, isTelefone: true };
     }
+    if (typeof dadosExtraidos.senderLid === 'string' && regexTelefone.test(dadosExtraidos.senderLid)) {
+      return { identificador: dadosExtraidos.senderLid, isTelefone: true };
+    }
+
 
     // 2️⃣ Se não encontrou telefone válido, tenta o LID
     if (typeof dadosExtraidos.senderLid === 'string' && dadosExtraidos.senderLid.trim() !== '') {
-      return dadosExtraidos.senderLid.trim();
+      return { identificador: dadosExtraidos.senderLid.trim(), isTelefone: false };
     }
 
-    return null;
+        return {
+      identificador: null,
+      isTelefone: false
+    };
   }
 
 module.exports = { resolverIdentificadorUsuario };
