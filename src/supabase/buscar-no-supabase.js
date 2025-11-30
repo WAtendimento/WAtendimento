@@ -1,22 +1,19 @@
 const { gerarVariacoesDeTelefone } = require('../utils/gerar-variacoes-telefone'); 
-/**
- * Função genérica para buscar dados no Supabase.
- *
- * @param {string} tabela - Nome da tabela no Supabase.
- * @param {Object} filtros - Objeto contendo os campos e valores para busca, incluindo operador. Para strings e operador '=' será convertido para ilike com %string%
- * @param {string[]} camposSelecionados - Array de strings com os campos para selecionar.
- * @param {boolean} [usarVariacoesTelefone=true] - Indica se deve usar variações de telefone para busca.
- * @param {number} [limiteRegistros] - Número máximo de registros a serem retornados.
- *
- * @returns {Promise<Object>} Resultado da busca.
- */
-async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = [], usarVariacoesTelefone = true, limiteRegistros) {
+
+async function buscarNoSupabase(
+  supabase,
+  tabela,
+  filtros,
+  camposSelecionados = [],
+  usarVariacoesTelefone = true,
+  limiteRegistros
+) {
   if (!tabela || typeof tabela !== 'string') {
-    throw new Error('O parâmetro "tabela" é obrigatório e deve ser uma string.');
+    throw new Error('[WAt] O parâmetro "tabela" é obrigatório e deve ser uma string.');
   }
 
   if (typeof filtros !== 'object' || filtros === null) {
-    throw new Error('O parâmetro "filtros" deve ser um objeto.');
+    throw new Error('[WAt] O parâmetro "filtros" deve ser um objeto.');
   }
 
   const operadoresValidos = ['=', '>', '>=', '<', '<=', '!=', 'not'];
@@ -24,13 +21,13 @@ async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = 
   // Validar os filtros no formato { campo: [operador, valor] }
   Object.entries(filtros).forEach(([campo, condicao]) => {
     if (!Array.isArray(condicao) || condicao.length !== 2) {
-      throw new Error(`O filtro para o campo "${campo}" deve ser um array no formato [operador, valor].`);
+      throw new Error(`[WAt] O filtro para o campo "${campo}" deve ser um array no formato [operador, valor].`);
     }
 
-    const [operador, valor] = condicao;
+    const [operador] = condicao;
 
     if (!operadoresValidos.includes(operador)) {
-      throw new Error(`Operador "${operador}" inválido para o campo "${campo}".`);
+      throw new Error(`[WAt] Operador "${operador}" inválido para o campo "${campo}".`);
     }
   });
 
@@ -48,7 +45,7 @@ async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = 
       const regexTelefone = /^55\d{10,13}$/;
 
       if (!regexTelefone.test(valorOriginal)) {
-        console.log(">>> Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
+        console.log("[WAt] Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
       } else {
         let contador = 0;
         let variacoes = [];
@@ -75,33 +72,36 @@ async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = 
 
               switch (operador) {
                 case '=':
-                  if (typeof valor === 'string') {
-                    // Use `ilike` para ignorar case quando o valor for string
-                    query = query.ilike(campo, `%${valor}%`);
-                  } else {
-                    query = query.eq(campo, valor);
-                  }
+                  // 🔧 Correção aplicada: comparação exata, sem ilike
+                  query = query.eq(campo, valor);
                   break;
+
                 case '>':
                   query = query.gt(campo, valor);
                   break;
+
                 case '>=':
                   query = query.gte(campo, valor);
                   break;
+
                 case '<':
                   query = query.lt(campo, valor);
                   break;
+
                 case '<=':
                   query = query.lte(campo, valor);
                   break;
+
                 case '!=':
                   query = query.neq(campo, valor);
                   break;
+
                 case 'not':
                   query = query.not(campo, 'is', valor);
                   break;
+
                 default:
-                  throw new Error(`Operador "${operador}" não suportado para o campo "${campo}".`);
+                  throw new Error(`[WAt] Operador "${operador}" não suportado para o campo "${campo}".`);
               }
             });
 
@@ -129,32 +129,39 @@ async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = 
       .filter(([_, condicao]) => condicao[1] !== null)
       .forEach(([campo, condicao]) => {
         const [operador, valor] = condicao;
-        if (typeof valor === 'string' && operador === '=') {
-          // Caso seja uma string, use `ilike` para ignorar o case
-          query = query.ilike(campo, `%${valor}%`);
-        } else {
-          switch (operador) {
-            case '=':
-              query = query.eq(campo, valor);
-              break;
-            case '>':
-              query = query.gt(campo, valor);
-              break;
-            case '>=':
-              query = query.gte(campo, valor);
-              break;
-            case '<':
-              query = query.lt(campo, valor);
-              break;
-            case '<=':
-              query = query.lte(campo, valor);
-              break;
-            case '!=':
-              query = query.neq(campo, valor);
-              break;
-            default:
-              throw new Error(`Operador "${operador}" não suportado para o campo "${campo}".`);
-          }
+
+        switch (operador) {
+          case '=':
+            // 🔧 Correção aplicada: igualdade exata sempre
+            query = query.eq(campo, valor);
+            break;
+
+          case '>':
+            query = query.gt(campo, valor);
+            break;
+
+          case '>=':
+            query = query.gte(campo, valor);
+            break;
+
+          case '<':
+            query = query.lt(campo, valor);
+            break;
+
+          case '<=':
+            query = query.lte(campo, valor);
+            break;
+
+          case '!=':
+            query = query.neq(campo, valor);
+            break;
+
+          case 'not':
+            query = query.not(campo, 'is', valor);
+            break;
+
+          default:
+            throw new Error(`[WAt] Operador "${operador}" não suportado para o campo "${campo}".`);
         }
       });
 
@@ -165,7 +172,7 @@ async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = 
     const { data, error } = await query;
 
     if (error) {
-      throw new Error(`Erro ao buscar dados no Supabase: ${error.message}`);
+      throw new Error(`[WAt] Erro ao buscar dados no Supabase: ${error.message}`);
     }
     return data;
   } catch (error) {
@@ -175,4 +182,3 @@ async function buscarNoSupabase(supabase, tabela, filtros, camposSelecionados = 
 }
 
 module.exports = { buscarNoSupabase };
-
