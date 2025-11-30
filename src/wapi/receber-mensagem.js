@@ -70,10 +70,13 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
     // === BUSCAR TELEFONE DO CONTATO NO SUPABASE ===
     console.log('[WAt] Buscando telefone do contato no Supabase...');
+    console.log('[WAt] Identificador para busca:', identificador);
+    console.log('[WAt] CHIP WAPI:', credenciaisWAPI.id_chip);
     const res = await buscarNoSupabase(
       supabase,
       credenciaisSupabase.table_data.table_contatos,
-      { identificador: ['=', identificador], id_chip: ['=', credenciaisWAPI.id_chip] },
+      { identificador: ['=', identificador], 
+        id_chip: ['=', credenciaisWAPI.id_chip] },
       ['telefone', 'ultima_mensagem'],
       true
     );
