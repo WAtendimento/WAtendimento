@@ -1,5 +1,4 @@
 const { gerarVariacoesDeTelefone } = require('../utils/gerar-variacoes-telefone'); 
-const { gerarVariacoesDeTelefone } = require('../utils/gerar-variacoes-telefone'); 
 
 /**
  * Função genérica para buscar dados no Supabase.
