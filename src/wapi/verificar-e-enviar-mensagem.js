@@ -250,7 +250,7 @@ async function controleDeThreads({
           },
         });
 
-        logger.add('>>> Mensagem enviada na thread existente com sucesso.');
+        logger.add('>>> [WAt] Mensagem enviada na thread existente com sucesso.');
         threadId = openai_thread_id;
         lastMessageId = resultado.messageId;
         criouThread = false;

@@ -123,7 +123,7 @@ async function atualizarNoSupabase(
     const telefoneOriginal = extrairValor(brutoTel);
 
     if (!telefoneRegex.test(telefoneOriginal)) {
-      console.log(">>> Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
+      console.log("[WAt] Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
     } else {
       const variacoes = gerarVariacoesDeTelefone(telefoneOriginal);
 

@@ -80,7 +80,7 @@ async function buscarNoSupabase(
       const valorOriginal = filtros[campoParaVariacao][1];
 
       if (!telefoneRegex.test(valorOriginal)) {
-        console.log(">>> Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
+        console.log("[WAt] Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
       } else {
         let contador = 0;
         let variacoes = gerarVariacoesDeTelefone(valorOriginal);

@@ -32,8 +32,6 @@ const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
         true // <-- ativa variações de telefone
       );
 
-      // console.log('>>> Resultado da busca na whitelist do modo teste:', rows);
-
       // Se o helper já retorna o array de linhas:
       if (Array.isArray(rows)) return rows.length > 0;
 

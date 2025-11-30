@@ -1,8 +1,8 @@
-const enviarMensagemAPI = require('./enviar-mensagem-api');
+const { enviarMensagemAPI } = require('./enviar-mensagem-api');
 const { consultaOpenAI } = require('../waissistente/consulta-open-ai');
-const buscarNoSupabase = require('../supabase/buscar-no-supabase');
-const atualizarNoSupabase = require('../supabase/atualizar-no-supabase');
-const insertOuUpsert = require('../supabase/inserir-ou-atualizar-no-supabase');
+const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
+const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
+const { insertOuUpsert } = require('../supabase/inserir-ou-atualizar-no-supabase');
  
 async function resolverTelefoneFaltante(
   identificador,
@@ -26,7 +26,7 @@ async function resolverTelefoneFaltante(
 
 
   try {
-    console.log(`>>> Iniciando resolução de telefone faltante para ${identificador}...`);
+    console.log(`[WAt] Iniciando resolução de telefone faltante para ${identificador}...`);
     
     // 1) Busca contato
     const contato = await buscarNoSupabase(
@@ -49,11 +49,11 @@ async function resolverTelefoneFaltante(
 
     // 1a) Se não existe: cria placeholder por UPSERT e pede o número
     if (!contato || contato.length === 0) {
-      console.log('>>> Contato não encontrado no banco. Criando contato e solicitando número...');
+      console.log('[WAt] Contato não encontrado no banco. Criando contato e solicitando número...');
        console.log(`⚙️ id_chip usado: ${id_chip}, identificador: ${identificador}`);
 
-       console.log('>>> Preparando para inserir/upsert contato...');
-console.log('>>> Dados que serão enviados:', {
+       console.log('[WAt] Preparando para inserir/upsert contato...');
+console.log('[WAt] Dados que serão enviados:', {
   id_chip,
   identificador,
   nome_cliente: nomeCliente || 'cliente',
@@ -79,7 +79,7 @@ console.log('>>> Dados que serão enviados:', {
       );
 
       // Envia mensagem solicitando o número
-      console.log('>>> Enviando mensagem solicitando número ao cliente...');
+      console.log('[WAt] Enviando mensagem solicitando número ao cliente...');
       await enviarMensagemAPI(
         credenciaisWAPI,
         identificador,
@@ -88,27 +88,27 @@ console.log('>>> Dados que serão enviados:', {
         mensagemUsuario
       );
 
-      console.log('>>> Contato inexistente: placeholder criado (UPSERT) e iniciada coleta de número.');
+      console.log('[WAt] Contato inexistente: placeholder criado (UPSERT) e iniciada coleta de número.');
       return true; // interrompe para aguardar resposta
     }
 
     const dados = contato[0];
 
-    // console.log(`>>> Contato encontrado: ${JSON.stringify(dados)}`);
+    // console.log(`[WAt] Contato encontrado: ${JSON.stringify(dados)}`);
 
     // 2) Se já tem telefone, segue o fluxo normal
     if (dados.telefone) {
-      console.log('>>> Contato já possui telefone cadastrado. Segue o fluxo normal.');
+      console.log('[WAt] Contato já possui telefone cadastrado. Segue o fluxo normal.');
       return false;
     }
 
-    console.log('>>> Status do reconhecimento em andamento:', dados.reconhecimento_em_andamento);
+    console.log('[WAt] Status do reconhecimento em andamento:', dados.reconhecimento_em_andamento);
     id_chip = dados.id_chip
   
 
     // 3) Caso 1 — iniciar reconhecimento (lock otimista com filtro composto)
     if (!dados.reconhecimento_em_andamento) {
-      console.log('>>> Iniciando processo de reconhecimento de número...');
+      console.log('[WAt] Iniciando processo de reconhecimento de número...');
       const upd = await atualizarNoSupabase(
         supabase,
         credenciaisSupabase.table_data.table_contatos,
@@ -123,10 +123,10 @@ console.log('>>> Dados que serão enviados:', {
       );
       //const atualizou = upd?.rowCount > 0 || upd?.count > 0 || upd?.data?.length > 0;
 
-      // console.log('>>> Resultado da tentativa de lock otimista:', upd);
+      // console.log('[WAt] Resultado da tentativa de lock otimista:', upd);
 
       if (upd.data) {
-        console.log('>>> Flag de reconhecimento iniciada com sucesso. Solicitando número ao cliente...');
+        console.log('[WAt] Flag de reconhecimento iniciada com sucesso. Solicitando número ao cliente...');
         await enviarMensagemAPI(
           credenciaisWAPI,
           identificador,
@@ -135,17 +135,17 @@ console.log('>>> Dados que serão enviados:', {
           mensagemUsuario,
           true
         );
-        console.log('>>> Reconhecimento de número iniciado. Solicitado número ao cliente.');
+        console.log('[WAt] Reconhecimento de número iniciado. Solicitado número ao cliente.');
         return true; // aguarda resposta
       } else {
-        console.log('>>> Reconhecimento já estava em andamento (race resolvida). Prosseguindo para extração.');
+        console.log('[WAt] Reconhecimento já estava em andamento (race resolvida). Prosseguindo para extração.');
       }
     }
 
     // 4) Caso 2 — já em reconhecimento: tentar extrair
     let numero = null;
 
-    console.log('>>> Tentando extrair número via IA...');
+    console.log('[WAt] Tentando extrair número via IA...');
 
     let extraido = null;
     let incompleto = false;
@@ -164,14 +164,14 @@ console.log('>>> Dados que serão enviados:', {
       incompleto = resposta.invoice?.incompleto;
 
 
-      //console.log(`>>> Resposta da IA:  ${resposta.invoice}`);
-      console.log(`>>> Número extraído pela IA: ${extraido}`);
-      console.log(`>>> Indicador de número incompleto pela IA: ${incompleto}`);
+      //console.log(`[WAt] Resposta da IA:  ${resposta.invoice}`);
+      console.log(`[WAt] Número extraído pela IA: ${extraido}`);
+      console.log(`[WAt] Indicador de número incompleto pela IA: ${incompleto}`);
       
 
       //const messagemRetorno = resposta.data.mensagem;
       if(incompleto === true) {
-        console.log('>>> IA indicou que o número extraído está incompleto, solicitando novamente ao cliente...');
+        console.log('[WAt] IA indicou que o número extraído está incompleto, solicitando novamente ao cliente...');
 
          await enviarMensagemAPI(
           credenciaisWAPI,
@@ -181,13 +181,13 @@ console.log('>>> Dados que serão enviados:', {
           mensagemUsuario
         );
 
-        console.log('>>> Número não estava completo. Solicitado novamente.');
+        console.log('[WAt] Número não estava completo. Solicitado novamente.');
         return true; // aguarda nova resposta
       }
 
       //extraido = '5581988961959'; // MOCK — REMOVER depois
     } catch (e) {
-      console.log(`>>> Falha na consultaOpenAI: ${e?.message || e}`);
+      console.log(`[WAt] Falha na consultaOpenAI: ${e?.message || e}`);
     }
 
     // 🔹 Primeiro: tenta normalizar o resultado da IA
@@ -195,16 +195,16 @@ console.log('>>> Dados que serão enviados:', {
       numero = normalizarTelefoneBR(extraido);
     }
     
-    console.log(`>>> Número extraído via IA: ${extraido} → normalizado: ${numero}`);
+    console.log(`[WAt] Número extraído via IA: ${extraido} → normalizado: ${numero}`);
 
     // 🔹 Se a IA não retornou nada útil ou o número não for válido, tenta regex/local
     if (!numero || !ehTelefoneBRValido(numero)) {
-      console.log('>>> IA não conseguiu extrair número válido. Tentando via regex/local...');
+      console.log('[WAt] IA não conseguiu extrair número válido. Tentando via regex/local...');
       numero = normalizarTelefoneBR(mensagemUsuario);
     }
 
     if (numero && ehTelefoneBRValido(numero)) {
-      console.log(`>>> Número extraído com sucesso: ${numero}. Atualizando cadastro...`);
+      console.log(`[WAt] Número extraído com sucesso: ${numero}. Atualizando cadastro...`);
       await atualizarNoSupabase(
         supabase,
         credenciaisSupabase.table_data.table_contatos,
@@ -215,7 +215,7 @@ console.log('>>> Dados que serão enviados:', {
         { telefone: numero, reconhecimento_em_andamento: false }
       );
 
-      console.log('>>> Número atualizado no cadastro. Enviando confirmação ao cliente...');
+      console.log('[WAt] Número atualizado no cadastro. Enviando confirmação ao cliente...');
       await enviarMensagemAPI(
         credenciaisWAPI,
         identificador,
@@ -224,11 +224,11 @@ console.log('>>> Dados que serão enviados:', {
         mensagemUsuario
       );
 
-      console.log(`>>> Número extraído e salvo: ${numero}`);
+      console.log(`[WAt] Número extraído e salvo: ${numero}`);
       return { reconhecidoAgora: true };
     }
 
-    console.log('>>> Falha ao extrair número após tentativas. Solicitando novamente ao cliente...');
+    console.log('[WAt] Falha ao extrair número após tentativas. Solicitando novamente ao cliente...');
     await enviarMensagemAPI(
       credenciaisWAPI,
       identificador,
@@ -237,7 +237,7 @@ console.log('>>> Dados que serão enviados:', {
       mensagemUsuario
     );
 
-    console.log('>>> Falha ao extrair número. Solicitado novamente.');
+    console.log('[WAt] Falha ao extrair número. Solicitado novamente.');
     return true; // aguarda nova resposta
 
   } catch (err) {
@@ -269,10 +269,10 @@ console.log('>>> Dados que serão enviados:', {
         );
       }
     } catch (subErr) {
-      console.log(`>>> (cleanup) Falhou ao ajustar flag: ${subErr?.message || subErr}`);
+      console.log(`[WAt] (cleanup) Falhou ao ajustar flag: ${subErr?.message || subErr}`);
     }
 
-    console.log(`>>> Erro em resolverTelefoneFaltante(${identificador}): ${err?.message || err}`);
+    console.log(`[WAt] Erro em resolverTelefoneFaltante(${identificador}): ${err?.message || err}`);
     return false;
   }
 }
@@ -281,26 +281,26 @@ console.log('>>> Dados que serão enviados:', {
 
 
 function normalizarTelefoneBR(input) {
-  console.log(`>>> Normalizando telefone BR: entrada="${input}"`);
+  console.log(`[WAt] Normalizando telefone BR: entrada="${input}"`);
   const onlyDigits = (s) => String(s ?? '').replace(/\D+/g, '');
 
 
   if (!input) return null;
   const d = onlyDigits(input);
-  console.log(`>>> Apenas dígitos: "${d}"`);
+  console.log(`[WAt] Apenas dígitos: "${d}"`);
 
   if (/^55\d{10,11}$/.test(d)) { 
-    console.log(`>>> Já está no formato completo: ${d} (len=${d.length})`);
+    console.log(`[WAt] Já está no formato completo: ${d} (len=${d.length})`);
     return d; // já com 55
   }
 
   if (/^\d{10,11}$/.test(d)) {
-    console.log(`>>> Adicionando código do Brasil (55): ${d} (len=${d.length})`);
+    console.log(`[WAt] Adicionando código do Brasil (55): ${d} (len=${d.length})`);
     return '55' + d; // DDD + número
   }
 
   if (/^0\d{10,11}$/.test(d)) {
-    console.log(`>>> Removendo zero inicial e adicionando código do Brasil (55): ${d} (len=${d.length})`);
+    console.log(`[WAt] Removendo zero inicial e adicionando código do Brasil (55): ${d} (len=${d.length})`);
     return '55' + d.slice(1); // 0 + DDD + número
   }
 

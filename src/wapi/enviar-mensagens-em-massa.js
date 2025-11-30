@@ -167,7 +167,7 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
             );
             console.log(`[WAt]|| Envio em massa: Número ${number} não encontrado no WhatsApp. Atualizando no banco...`);
           } else {
-            motivo = `>>>>>> Erro não identificado ${mensagemErro}`;
+            motivo = ` Erro não identificado ${mensagemErro}`;
             await atualizarNoSupabase(
               supabase, 
                credenciaisSupabase.table_data.table_contatos,
