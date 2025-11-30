@@ -69,6 +69,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     }
 
     // === BUSCAR TELEFONE DO CONTATO NO SUPABASE ===
+    console.log('[WAt] Buscando telefone do contato no Supabase...');
     const res = await buscarNoSupabase(
       supabase,
       credenciaisSupabase.table_data.table_contatos,

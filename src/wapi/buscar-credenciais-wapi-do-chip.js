@@ -8,6 +8,7 @@ async function buscarCredenciaisWAPIdoChip(telefone, supabase, credenciaisSupaba
     };
     
     const camposSelecionados = [
+      "id_chip",
       "instance_id",
       "new_token",
     ];
@@ -29,6 +30,7 @@ async function buscarCredenciaisWAPIdoChip(telefone, supabase, credenciaisSupaba
     const chip = resultadoConsultaChip[0];
 
     const credenciais = {
+      id_chip: chip.id_chip,
       instance_id: chip.instance_id,
       token: chip.new_token,
     };
