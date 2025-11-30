@@ -1,27 +1,36 @@
-/**
- * Normaliza um valor para INSERT/UPSERT.
- * - Impede arrays acidentais como ["=", 1]
- * - Impede objetos indevidos
- * - Impede valores como "=,1"
- */
 function normalizarValor(valor, campo) {
+  // 1) Se for array, pode ser:
+  //    a) JSON legítimo (ex: lista de mensagens) -> PERMITIR
+  //    b) filtro acidental ["=", 1] -> BLOQUEAR
   if (Array.isArray(valor)) {
-    console.warn(`[WAt][WARN] Campo "${campo}" recebeu array. Usando apenas o valor interno:`, valor);
+    const possivelOperador = valor[0];
 
-    // Caso seja ["=", valor] → extrai o valor real
-    if (valor.length === 2 && typeof valor[0] === "string") {
-      return valor[1];
+    const operadoresSuspeitos = [
+      "=", "!=", ">", ">=", "<", "<=",
+      "like", "ilike", "not", "in", "is"
+    ];
+
+    if (
+      valor.length === 2 &&
+      typeof possivelOperador === "string" &&
+      operadoresSuspeitos.includes(possivelOperador)
+    ) {
+      // Isso aqui claramente é um filtro vindo errado pro insert
+      throw new Error(
+        `Valor inválido para o campo "${campo}". Parece que você passou um filtro [${possivelOperador}, valor] em vez de um valor direto.`
+      );
     }
 
-    // Caso seja um array legítimo → bloquear por segurança
-    throw new Error(`Valor inválido para o campo "${campo}". Arrays não são permitidos em INSERT/UPSERT.`);
+    // Caso contrário, tratamos como JSON válido (ex: json_conversa)
+    return valor;
   }
 
+  // 2) Objetos também são válidos (JSON)
   if (typeof valor === "object" && valor !== null) {
-    throw new Error(`Valor inválido para o campo "${campo}". Objetos não são permitidos em INSERT/UPSERT.`);
+    return valor;
   }
 
-  // Proteção contra valores tipo "=,1" vindos de filtros contaminados
+  // 3) Proteção contra strings bugadas tipo "=,1"
   if (typeof valor === "string" && valor.includes(",") && valor.startsWith("=")) {
     console.warn(`[WAt][WARN] Valor estranho detectado no campo "${campo}":`, valor);
     const partes = valor.split(",");
@@ -30,6 +39,7 @@ function normalizarValor(valor, campo) {
 
   return valor;
 }
+
 
 /**
  * Normaliza TODO o objeto do registro antes de enviar ao Supabase
