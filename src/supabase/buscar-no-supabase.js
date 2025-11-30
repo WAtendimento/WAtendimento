@@ -1,5 +1,17 @@
 const { gerarVariacoesDeTelefone } = require('../utils/gerar-variacoes-telefone'); 
+const { gerarVariacoesDeTelefone } = require('../utils/gerar-variacoes-telefone'); 
 
+/**
+ * Função genérica para buscar dados no Supabase.
+ *
+ * @param {string} tabela
+ * @param {Object} filtros
+ * @param {string[]} camposSelecionados
+ * @param {boolean} [usarVariacoesTelefono=true]
+ * @param {number} [limiteRegistros]
+ *
+ * @returns {Promise<Object>}
+ */
 async function buscarNoSupabase(
   supabase,
   tabela,
@@ -9,62 +21,80 @@ async function buscarNoSupabase(
   limiteRegistros
 ) {
   if (!tabela || typeof tabela !== 'string') {
-    throw new Error('[WAt] O parâmetro "tabela" é obrigatório e deve ser uma string.');
+    throw new Error('O parâmetro "tabela" é obrigatório e deve ser uma string.');
   }
 
   if (typeof filtros !== 'object' || filtros === null) {
-    throw new Error('[WAt] O parâmetro "filtros" deve ser um objeto.');
+    throw new Error('O parâmetro "filtros" deve ser um objeto.');
   }
 
   const operadoresValidos = ['=', '>', '>=', '<', '<=', '!=', 'not'];
 
-  // Validar os filtros no formato { campo: [operador, valor] }
+  // Validar filtros
   Object.entries(filtros).forEach(([campo, condicao]) => {
     if (!Array.isArray(condicao) || condicao.length !== 2) {
-      throw new Error(`[WAt] O filtro para o campo "${campo}" deve ser um array no formato [operador, valor].`);
+      throw new Error(`O filtro para o campo "${campo}" deve ser um array [operador, valor].`);
     }
-
     const [operador] = condicao;
-
     if (!operadoresValidos.includes(operador)) {
-      throw new Error(`[WAt] Operador "${operador}" inválido para o campo "${campo}".`);
+      throw new Error(`Operador "${operador}" inválido para o campo "${campo}".`);
     }
   });
 
   const chavesDosFiltros = Object.keys(filtros);
 
+  // === ORIGINAL ===
   const nomeFiltro = ['telefone', 'connected_phone', 'valor_config'];
+
+  // === CORREÇÃO AQUI ===
+  // Detectar se o filtro é por identificador contendo telefone
+  const telefoneRegex = /^55\d{10,13}$/;
+
+  let identificadorPodeSerTelefone = false;
+
+  if (filtros.identificador) {
+    const valorId = Array.isArray(filtros.identificador)
+      ? filtros.identificador[1]
+      : filtros.identificador;
+
+    if (typeof valorId === 'string' && telefoneRegex.test(valorId)) {
+      identificadorPodeSerTelefone = true;
+    }
+  }
+
+  // Modo variações: telefone, connected_phone, valor_config OU identificador que é telefone
+  const deveGerarVariacoes =
+    usarVariacoesTelefone &&
+    (nomeFiltro.some((k) => chavesDosFiltros.includes(k)) || identificadorPodeSerTelefone);
+
   let contatoExistente = null;
 
   try {
-    // Gerar variações de telefone, caso seja solicitado e o filtro seja de telefone
-    if (usarVariacoesTelefone && nomeFiltro.some((filtro) => chavesDosFiltros.includes(filtro))) {
+    // ======================================================
+    // === CORREÇÃO: GERAR VARIAÇÕES SE IDENTIFICADOR É TEL ===
+    // ======================================================
+    if (deveGerarVariacoes) {
+      const camposPossiveis = [...nomeFiltro, 'identificador'];
 
-      const chaveTelefone = nomeFiltro.find((k) => k in filtros);
-      const valorOriginal = filtros[chaveTelefone][1];
-      const regexTelefone = /^55\d{10,13}$/;
+      const campoParaVariacao = camposPossiveis.find((campo) => campo in filtros);
 
-      if (!regexTelefone.test(valorOriginal)) {
-        console.log("[WAt] Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
+      const valorOriginal = filtros[campoParaVariacao][1];
+
+      if (!telefoneRegex.test(valorOriginal)) {
+        console.log(">>> Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
       } else {
         let contador = 0;
-        let variacoes = [];
-        nomeFiltro.forEach((filtro) => {
-          if (filtros[filtro]) {
-            variacoes = gerarVariacoesDeTelefone(filtros[filtro][1]);
-          }
-        });
+        let variacoes = gerarVariacoesDeTelefone(valorOriginal);
 
         for (const variacaoTelefone of variacoes) {
-          nomeFiltro.forEach((filtro) => {
-            if (filtros[filtro]) {
-              filtros[filtro][1] = gerarVariacoesDeTelefone(variacaoTelefone)[contador];
-            }
-          });
+          // Substituir SOMENTE o campo que está sendo variado
+          filtros[campoParaVariacao][1] = gerarVariacoesDeTelefone(variacaoTelefone)[contador];
 
-          let query = supabase.from(tabela).select(camposSelecionados.length ? camposSelecionados.join(',') : '*');
+          let query = supabase
+            .from(tabela)
+            .select(camposSelecionados.length ? camposSelecionados.join(',') : '*');
 
-          // Aplicando filtros com operadores
+          // Aplicar filtros
           Object.entries(filtros)
             .filter(([_, condicao]) => condicao[1] !== null)
             .forEach(([campo, condicao]) => {
@@ -72,47 +102,23 @@ async function buscarNoSupabase(
 
               switch (operador) {
                 case '=':
-                  // 🔧 Correção aplicada: comparação exata, sem ilike
                   query = query.eq(campo, valor);
                   break;
-
-                case '>':
-                  query = query.gt(campo, valor);
-                  break;
-
-                case '>=':
-                  query = query.gte(campo, valor);
-                  break;
-
-                case '<':
-                  query = query.lt(campo, valor);
-                  break;
-
-                case '<=':
-                  query = query.lte(campo, valor);
-                  break;
-
-                case '!=':
-                  query = query.neq(campo, valor);
-                  break;
-
-                case 'not':
-                  query = query.not(campo, 'is', valor);
-                  break;
-
-                default:
-                  throw new Error(`[WAt] Operador "${operador}" não suportado para o campo "${campo}".`);
+                case '>': query = query.gt(campo, valor); break;
+                case '>=': query = query.gte(campo, valor); break;
+                case '<': query = query.lt(campo, valor); break;
+                case '<=': query = query.lte(campo, valor); break;
+                case '!=': query = query.neq(campo, valor); break;
+                case 'not': query = query.not(campo, 'is', valor); break;
               }
             });
 
-          if (limiteRegistros) {
-            query = query.limit(limiteRegistros);
-          }
+          if (limiteRegistros) query = query.limit(limiteRegistros);
 
-          const { data, error } = await query;
+          const { data } = await query;
+
           if (data && data.length > 0) {
-            // Registro encontrado, salva os dados e quebra o loop
-            contatoExistente = data;
+            contatoExistente = data; // encontrado!
             break;
           }
           continue;
@@ -122,59 +128,45 @@ async function buscarNoSupabase(
       }
     }
 
-    let query = supabase.from(tabela).select(camposSelecionados.length ? camposSelecionados.join(',') : '*');
+    // ======================================================
+    // === SE NÃO ACHOU NA VARIAÇÃO, FAZ BUSCA NORMAL =======
+    // ======================================================
 
-    // Aplicando filtros com operadores
-    Object.entries(filtros)
-      .filter(([_, condicao]) => condicao[1] !== null)
-      .forEach(([campo, condicao]) => {
-        const [operador, valor] = condicao;
+    if (!contatoExistente) {
+      let query = supabase
+        .from(tabela)
+        .select(camposSelecionados.length ? camposSelecionados.join(',') : '*');
 
-        switch (operador) {
-          case '=':
-            // 🔧 Correção aplicada: igualdade exata sempre
-            query = query.eq(campo, valor);
-            break;
+      Object.entries(filtros)
+        .filter(([_, condicao]) => condicao[1] !== null)
+        .forEach(([campo, condicao]) => {
+          const [operador, valor] = condicao;
 
-          case '>':
-            query = query.gt(campo, valor);
-            break;
+          switch (operador) {
+            case '=':
+              query = query.eq(campo, valor);
+              break;
+            case '>': query = query.gt(campo, valor); break;
+            case '>=': query = query.gte(campo, valor); break;
+            case '<': query = query.lt(campo, valor); break;
+            case '<=': query = query.lte(campo, valor); break;
+            case '!=': query = query.neq(campo, valor); break;
+            default:
+              throw new Error(`Operador "${operador}" não suportado para o campo "${campo}".`);
+          }
+        });
 
-          case '>=':
-            query = query.gte(campo, valor);
-            break;
+      if (limiteRegistros) query = query.limit(limiteRegistros);
 
-          case '<':
-            query = query.lt(campo, valor);
-            break;
+      const { data, error } = await query;
 
-          case '<=':
-            query = query.lte(campo, valor);
-            break;
+      if (error) throw new Error(`Erro ao buscar dados no Supabase: ${error.message}`);
 
-          case '!=':
-            query = query.neq(campo, valor);
-            break;
-
-          case 'not':
-            query = query.not(campo, 'is', valor);
-            break;
-
-          default:
-            throw new Error(`[WAt] Operador "${operador}" não suportado para o campo "${campo}".`);
-        }
-      });
-
-    if (limiteRegistros) {
-      query = query.limit(limiteRegistros);
+      return data;
     }
 
-    const { data, error } = await query;
+    return contatoExistente;
 
-    if (error) {
-      throw new Error(`[WAt] Erro ao buscar dados no Supabase: ${error.message}`);
-    }
-    return data;
   } catch (error) {
     console.error(error.message);
     throw error;

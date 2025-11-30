@@ -1,36 +1,34 @@
+const { gerarVariacoesDeTelefone } = require("../utils/gerar-variacoes-telefone");
+
+/**
+ * Normaliza valores simples ou remove filtros acidentais
+ */
 function normalizarValor(valor, campo) {
-  // 1) Se for array, pode ser:
-  //    a) JSON legítimo (ex: lista de mensagens) -> PERMITIR
-  //    b) filtro acidental ["=", 1] -> BLOQUEAR
   if (Array.isArray(valor)) {
     const possivelOperador = valor[0];
-
     const operadoresSuspeitos = [
       "=", "!=", ">", ">=", "<", "<=",
       "like", "ilike", "not", "in", "is"
     ];
 
+    // Caso seja array no formato de filtro → ERRO
     if (
       valor.length === 2 &&
       typeof possivelOperador === "string" &&
       operadoresSuspeitos.includes(possivelOperador)
     ) {
-      // Isso aqui claramente é um filtro vindo errado pro insert
       throw new Error(
         `Valor inválido para o campo "${campo}". Parece que você passou um filtro [${possivelOperador}, valor] em vez de um valor direto.`
       );
     }
 
-    // Caso contrário, tratamos como JSON válido (ex: json_conversa)
-    return valor;
+    return valor; // JSON válido
   }
 
-  // 2) Objetos também são válidos (JSON)
   if (typeof valor === "object" && valor !== null) {
     return valor;
   }
 
-  // 3) Proteção contra strings bugadas tipo "=,1"
   if (typeof valor === "string" && valor.includes(",") && valor.startsWith("=")) {
     console.warn(`[WAt][WARN] Valor estranho detectado no campo "${campo}":`, valor);
     const partes = valor.split(",");
@@ -40,9 +38,8 @@ function normalizarValor(valor, campo) {
   return valor;
 }
 
-
 /**
- * Normaliza TODO o objeto do registro antes de enviar ao Supabase
+ * Normaliza TODO o registro (insert/upsert)
  */
 function normalizarRegistro(registro) {
   const limpo = {};
@@ -53,7 +50,7 @@ function normalizarRegistro(registro) {
 }
 
 /**
- * Função genérica para realizar um INSERT ou UPSERT em qualquer tabela no Supabase.
+ * Função genérica para realizar INSERT ou UPSERT com normalização + variações de telefone
  */
 async function insertOuUpsert(supabase, tabela, registro, isUpsert, camposConflito = []) {
 
@@ -65,20 +62,58 @@ async function insertOuUpsert(supabase, tabela, registro, isUpsert, camposConfli
     throw new Error('O parâmetro "registro" deve ser um objeto válido.');
   }
 
-  if (isUpsert &&
-    (!camposConflito ||
-      !Array.isArray(camposConflito) ||
-      camposConflito.length === 0)
+  if (
+    isUpsert &&
+    (!camposConflito || !Array.isArray(camposConflito) || camposConflito.length === 0)
   ) {
     throw new Error(
       'O parâmetro "camposConflito" deve ser um array não vazio de strings para operações UPSERT.'
     );
   }
 
-  // 🔧 CORREÇÃO 1 — Normalizar dados antes de enviar ao Supabase
   const registroNormalizado = normalizarRegistro(registro);
 
-  // 🔧 CORREÇÃO 2 — Garante que campos de conflito não tenham operador ou array
+  // ============================================================
+  // 🔥 CORREÇÃO AQUI — detecta se identificador é telefone
+  // ============================================================
+
+  let identificador = registroNormalizado.identificador;
+  const telefoneRegex = /^55\d{10,13}$/;
+
+  const identificadorEhTelefone =
+    typeof identificador === "string" && telefoneRegex.test(identificador);
+
+  if (identificadorEhTelefone) {
+
+    // Gera variações igual ao buscar/atualizar
+    const variacoes = gerarVariacoesDeTelefone(identificador);
+    let identificadorReal = identificador; // fallback
+
+    // Busca se existe um registro no Supabase com alguma das variações
+    for (const variacao of variacoes) {
+      const { data, error } = await supabase
+        .from(tabela)
+        .select("*")
+        .eq("identificador", variacao)
+        .limit(1);
+
+      if (error) {
+        console.error(`[WAt][ERRO] Falha ao buscar variações no insert/upsert: ${error.message}`);
+      }
+
+      if (data && data.length > 0) {
+        identificadorReal = variacao;
+        break;
+      }
+    }
+
+    // Normaliza o identificador para a variação REAL encontrada
+    registroNormalizado.identificador = identificadorReal;
+  }
+
+  // ============================================================
+  // ❗ Protege campos de conflito contra arrays
+  // ============================================================
   camposConflito.forEach((campo) => {
     if (Array.isArray(registroNormalizado[campo])) {
       throw new Error(
@@ -90,7 +125,9 @@ async function insertOuUpsert(supabase, tabela, registro, isUpsert, camposConfli
   try {
     const query = supabase.from(tabela);
 
-    // 🔧 CORREÇÃO 3 — atualizar controle interação_em_andamento com segurança
+    // ============================================================
+    // CASO ESPECIAL — atualizar interacao com segurança
+    // ============================================================
     if (
       "interação_em_andamento" in registroNormalizado &&
       registroNormalizado.interação_em_andamento === true
@@ -116,7 +153,10 @@ async function insertOuUpsert(supabase, tabela, registro, isUpsert, camposConfli
       return contatoAtualizado;
     }
 
-    // 🔧 CORREÇÃO 4 — upsert/insert com registro limpo
+    // ============================================================
+    // INSERT / UPSERT NORMAL
+    // ============================================================
+
     let resultado;
     if (isUpsert) {
       resultado = await query.upsert([registroNormalizado], {

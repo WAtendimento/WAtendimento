@@ -29,10 +29,11 @@ async function atualizarNoSupabase(
     throw new Error('O parâmetro "dadosAtualizados" deve ser um objeto não vazio.');
   }
 
-  // Helper: aplica um mapa de filtros a uma query Supabase
+  /** **********************************************************************
+   * HELPER: aplica filtros na query
+   *************************************************************************/
   const aplicarFiltros = (query, filtrosEntrada) => {
     for (const [campo, bruto] of Object.entries(filtrosEntrada)) {
-      // Aceita valor simples (eq) ou [operador, valor]
       if (Array.isArray(bruto)) {
         const [op, val] = bruto;
         switch (op) {
@@ -43,17 +44,14 @@ async function atualizarNoSupabase(
           case '<':   query = query.lt(campo, val); break;
           case '<=':  query = query.lte(campo, val); break;
           case 'in':  query = query.in(campo, Array.isArray(val) ? val : [val]); break;
-          case 'like':  query = query.like(campo, val); break;   // passe com % se precisar
-          case 'ilike': query = query.ilike(campo, val); break;   // passe com % se precisar
-          case 'is':    query = query.is(campo, val); break;      // null / true / false
-          case 'not':   // padrão: .not(col, 'is', val)
-            query = query.not(campo, 'is', val);
-            break;
+          case 'like':  query = query.like(campo, val); break;
+          case 'ilike': query = query.ilike(campo, val); break;
+          case 'is':    query = query.is(campo, val); break;
+          case 'not':   query = query.not(campo, 'is', val); break;
           default:
             throw new Error(`Operador "${op}" não suportado para o campo "${campo}".`);
         }
       } else {
-        // valor simples => igualdade exata
         query = query.eq(campo, bruto);
       }
     }
@@ -65,8 +63,28 @@ async function atualizarNoSupabase(
   try {
     let registroEncontrado = null;
 
-    // 1) Tenta busca direta (sem variações) se não há filtro por telefone
-    if (!Object.prototype.hasOwnProperty.call(filtros, nomeFiltroTelefone)) {
+    /** **********************************************************************
+     * NOVO: Detectamos se identificador parece telefone
+     *       para incluir suporte a variações do identificador
+     *************************************************************************/
+    const telefoneRegex = /^55\d{10,13}$/;
+
+    const temFiltroTelefone = Object.prototype.hasOwnProperty.call(filtros, nomeFiltroTelefone);
+
+    // valor simples ou ['=', valor]
+    const extrairValor = (v) => Array.isArray(v) ? v[1] : v;
+
+    const identificadorPodeSerTelefone =
+      filtros.identificador &&
+      typeof extrairValor(filtros.identificador) === "string" &&
+      telefoneRegex.test(extrairValor(filtros.identificador));
+
+    const modoVariacao = temFiltroTelefone || identificadorPodeSerTelefone;
+
+    /** **********************************************************************
+     * 1) Se NÃO é modo variação → busca direta
+     *************************************************************************/
+    if (!modoVariacao) {
       let consultaDireta = supabase.from(tabela).select("*");
       consultaDireta = aplicarFiltros(consultaDireta, filtros);
 
@@ -76,7 +94,6 @@ async function atualizarNoSupabase(
       }
 
       if (registrosDiretos && registrosDiretos.length > 0) {
-        // Atualiza de imediato com os mesmos filtros
         let query = supabase.from(tabela).update(dadosAtualizados);
         query = aplicarFiltros(query, filtros);
         if (exibirResultado) query = query.select("*");
@@ -87,41 +104,53 @@ async function atualizarNoSupabase(
         }
 
         return exibirResultado
-          ? { data: dataAtualizada, updated: Array.isArray(dataAtualizada) ? dataAtualizada.length : 0 }
-          : { message: "Dados atualizados com sucesso!", updated: Array.isArray(dataAtualizada) ? dataAtualizada.length : 0 };
+          ? { data: dataAtualizada, updated: dataAtualizada?.length ?? 0 }
+          : { message: "Dados atualizados com sucesso!", updated: dataAtualizada?.length ?? 0 };
       }
 
       return { message: "Nenhum registro encontrado para atualizar.", updated: 0 };
     }
 
-    // 2) Há filtro de telefone -> tentar variações
-    // Extrai o "valor" do telefone, seja de ['=', valor] ou valor simples
-    const brutoTel = filtros[nomeFiltroTelefone];
-    const telefoneOriginal = Array.isArray(brutoTel) ? brutoTel[1] : brutoTel;
+    /** **********************************************************************
+     * 2) MODO COM VARIAÇÕES (telefone OU identificador que é telefone)
+     *************************************************************************/
 
-    const regexTelefone = /^55\d{10,13}$/;
-    if (!regexTelefone.test(telefoneOriginal)) {
+    // Determina origem do valor
+    const brutoTel = temFiltroTelefone
+      ? filtros[nomeFiltroTelefone]
+      : filtros.identificador;
+
+    const telefoneOriginal = extrairValor(brutoTel);
+
+    if (!telefoneRegex.test(telefoneOriginal)) {
       console.log(">>> Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
     } else {
       const variacoes = gerarVariacoesDeTelefone(telefoneOriginal);
 
-      // Testa cada variação: (telefone = variacao) + demais filtros
       for (const variacaoTelefone of variacoes) {
-        let consultaComVariacao = supabase.from(tabela).select("*").eq(nomeFiltroTelefone, variacaoTelefone);
+        // campo que varia: se filtro original era telefone → usa telefone
+        // se filtro original era identificador → varia identificador
+        const campoVariavel = temFiltroTelefone ? nomeFiltroTelefone : "identificador";
 
-        // Aplica os demais filtros (exceto telefone, que já fixamos acima)
+        let consulta = supabase
+          .from(tabela)
+          .select("*")
+          .eq(campoVariavel, variacaoTelefone);
+
+        // aplica os demais filtros
         const filtrosRestantes = { ...filtros };
-        delete filtrosRestantes[nomeFiltroTelefone];
-        consultaComVariacao = aplicarFiltros(consultaComVariacao, filtrosRestantes);
+        delete filtrosRestantes[campoVariavel];
+        consulta = aplicarFiltros(consulta, filtrosRestantes);
 
-        const { data: registros, error: erroConsulta } = await consultaComVariacao;
+        const { data: registros, error: erroConsulta } = await consulta;
+
         if (erroConsulta) {
           console.error(`Erro ao verificar filtros: ${erroConsulta.message}`);
           throw new Error(`Erro ao verificar filtros no Supabase: ${erroConsulta.message}`);
         }
 
         if (registros && registros.length > 0) {
-          registroEncontrado = { variacaoTelefone };
+          registroEncontrado = { campoVariavel, variacaoTelefone };
           break;
         }
       }
@@ -131,10 +160,16 @@ async function atualizarNoSupabase(
       throw new Error("Nenhum registro encontrado com as variações de telefone.");
     }
 
-    // 3) Atualiza usando a variação que casou
-    let query = supabase.from(tabela).update(dadosAtualizados).eq(nomeFiltroTelefone, registroEncontrado.variacaoTelefone);
+    /** **********************************************************************
+     * 3) Atualizar com a variação correta encontrada
+     *************************************************************************/
+    let query = supabase
+      .from(tabela)
+      .update(dadosAtualizados)
+      .eq(registroEncontrado.campoVariavel, registroEncontrado.variacaoTelefone);
+
     const filtrosRestantes = { ...filtros };
-    delete filtrosRestantes[nomeFiltroTelefone];
+    delete filtrosRestantes[registroEncontrado.campoVariavel];
     query = aplicarFiltros(query, filtrosRestantes);
 
     if (exibirResultado) query = query.select("*");
@@ -146,8 +181,8 @@ async function atualizarNoSupabase(
     }
 
     return exibirResultado
-      ? { data, updated: Array.isArray(data) ? data.length : 0 }
-      : { message: "Dados atualizados com sucesso!", updated: Array.isArray(data) ? data.length : 0 };
+      ? { data, updated: data?.length ?? 0 }
+      : { message: "Dados atualizados com sucesso!", updated: data?.length ?? 0 };
 
   } catch (error) {
     console.error(error.message);
