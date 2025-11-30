@@ -50,17 +50,17 @@ async function resolverTelefoneFaltante(
     // 1a) Se não existe: cria placeholder por UPSERT e pede o número
     if (!contato || contato.length === 0) {
       console.log('[WAt] Contato não encontrado no banco. Criando contato e solicitando número...');
-       console.log(`⚙️ id_chip usado: ${id_chip}, identificador: ${identificador}`);
+      console.log(`⚙️ id_chip usado: ${id_chip}, identificador: ${identificador}`);
 
-       console.log('[WAt] Preparando para inserir/upsert contato...');
-console.log('[WAt] Dados que serão enviados:', {
-  id_chip,
-  identificador,
-  nome_cliente: nomeCliente || 'cliente',
-  telefone: null,
-  reconhecimento_em_andamento: true,
-  ultima_mensagem: mensagemUsuario,
-});
+      console.log('[WAt] Preparando para inserir/upsert contato...');
+      console.log('[WAt] Dados que serão enviados:', {
+      id_chip,
+      identificador,
+      nome_cliente: nomeCliente || 'cliente',
+      telefone: null,
+      reconhecimento_em_andamento: true,
+      ultima_mensagem: mensagemUsuario,
+    });
 
 
       await insertOuUpsert(
@@ -83,7 +83,7 @@ console.log('[WAt] Dados que serão enviados:', {
       await enviarMensagemAPI(
         credenciaisWAPI,
         identificador,
-        "Olá! Sou a IA do PDM. Para encontrar o seu cadastro, preciso do seu número de telefone cadastrado. Pode me confirmar o seu número com DDD?",
+        "Olá! Para encontrar o seu cadastro, preciso do seu número de telefone cadastrado. Pode me confirmar o seu número com DDD?",
         nomeCliente || 'cliente',
         mensagemUsuario
       );
@@ -130,7 +130,7 @@ console.log('[WAt] Dados que serão enviados:', {
         await enviarMensagemAPI(
           credenciaisWAPI,
           identificador,
-          "Olá! Sou a IA do PDM. Para encontrar o seu cadastro, preciso do seu número de telefone cadastrado. Pode me confirmar o seu número com DDD?",
+          "Olá! Para encontrar o seu cadastro, preciso do seu número de telefone cadastrado. Pode me confirmar o seu número com DDD?",
           nomeCliente || 'cliente',
           mensagemUsuario,
           true
