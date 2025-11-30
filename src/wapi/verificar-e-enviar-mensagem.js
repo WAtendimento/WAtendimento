@@ -78,10 +78,10 @@ async function verificaEEnviaMensagem({
 
   try {
     if (!contatoEncerrado) {
-      console.log('[WAt]Antes de adquirir lock');
+      console.log('[WAt] Antes de adquirir lock');
       const lockAdquirido = await tentaAdquirirLock(supabase, telefoneContato, tabela, filtrosAdicionaisContato.id_chip);
 
-      console.log('[WAt]logAdquirido = ', lockAdquirido);
+      console.log('[WAt] lockAdquirido = ', lockAdquirido);
 
       if (lockAdquirido) {
         await atualizarNoSupabase(

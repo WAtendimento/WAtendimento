@@ -1,6 +1,6 @@
 {
   "name": "@watendimento/watendimento",
-  "version": "4.6.1",
+  "version": "4.7.0",
   "main": "src/index.js",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
