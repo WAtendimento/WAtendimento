@@ -88,6 +88,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
     // === SE IDENTIFICADOR É TELEFONE, SALVAR AUTOMATICAMENTE ===
     if (!telefoneContato && isTelefone) {
+      console.log('[WAt] Identificador é telefone. Salvando automaticamente no Supabase...');
       telefoneContato = identificador;
       await atualizarNoSupabase(
         supabase,
@@ -103,6 +104,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
     // === TELEFONE SERVE APENAS PARA O MODO TESTE / WHITELIST ===
     const autorizado = await ehTelefoneTeste(supabase, credenciaisSupabase, telefoneContato);
+    console.log('[WAt] Telefone autorizado para atendimento?', autorizado);
 
     if (dadosExtraidos.fromMe !== true) {
       console.log(`[WAt] Número do contato (para modo teste): ${telefoneContato} | autorizado?`, autorizado);
