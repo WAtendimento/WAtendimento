@@ -70,6 +70,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
     // === BUSCAR TELEFONE DO CONTATO NO SUPABASE ===
     const res = await buscarNoSupabase(
+      supabase,
       credenciaisSupabase.table_data.table_contatos,
       { identificador: ['=', identificador], id_chip: ['=', credenciaisWAPI.id_chip] },
       ['telefone', 'ultima_mensagem'],
@@ -85,6 +86,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     if (!telefoneContato && isTelefone) {
       telefoneContato = identificador;
       await atualizarNoSupabase(
+        supabase,
         credenciaisSupabase.table_data.table_contatos,
         { identificador: ['=', identificador], id_chip: ['=', credenciaisWAPI.id_chip] },
         { telefone: identificador, reconhecimento_em_andamento: false },
