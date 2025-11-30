@@ -11,6 +11,7 @@ const { gerarVariacoesDeTelefone } = require("../utils/gerar-variacoes-telefone"
  * @returns {Promise<Object>} Resultado da atualização.
  */
 async function atualizarNoSupabase(
+  supabase,
   tabela,
   filtros,
   dadosAtualizados,
