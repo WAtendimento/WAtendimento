@@ -1,11 +1,9 @@
 
 function gerarData() {
-  const dataAtual = new Date();
-  const dia = String(dataAtual.getDate()).padStart(2, '0');
-  const mes = String(dataAtual.getMonth() + 1).padStart(2, '0'); // Janeiro é 0
-  const ano = dataAtual.getFullYear();
-
-  return `${ano}-${mes}-${dia}`;
+  const s = new Date().toLocaleString('sv-SE', {
+    timeZone: 'America/Recife'
+  });
+  return s.slice(0, 10);
 }
 
 module.exports = {
