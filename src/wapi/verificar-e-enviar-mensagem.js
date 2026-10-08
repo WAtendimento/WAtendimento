@@ -98,6 +98,7 @@ async function verificaEEnviaMensagem({
         await new Promise((resolve) => setTimeout(resolve, 20000));
 
         mensagem = mensagensAcumuladas.finish();
+        const mensagensBufferizadas = mensagem;
 
         const resultado = await controleDeThreads({
           dadosFornecidos,
@@ -133,7 +134,7 @@ async function verificaEEnviaMensagem({
 
         // console.log('[WAt]Lock liberado');
 
-        return resultado;
+        return { ...resultado, mensagensBufferizadas };
       } else {
         // Lock não adquirido — interação em andamento
         await new Promise((resolve) => setTimeout(resolve, 1000));
