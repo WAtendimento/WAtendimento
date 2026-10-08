@@ -28,6 +28,7 @@ module.exports = {
   
   // OpenAI - OpenAI
   consultaOpenAI: require("./waissistente/consulta-open-ai").consultaOpenAI,
+  enviaMensagemResponses: require("./waissistente/enviar-mensagem-responses").enviaMensagemResponses,
 
   // Vision
   imagemParaTexto: require("./vision/detector-texto").imagemParaTexto,

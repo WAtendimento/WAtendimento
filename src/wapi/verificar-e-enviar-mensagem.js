@@ -1,6 +1,4 @@
-const { criaThreadeEnviaMensagem } = require('../waissistente/criar-thread-e-enviar-mensagem');
-const { enviaMensagemThreadExistente } = require('../waissistente/enviar-mensagem-de-thread-existente');
-const { buscaUltimaMensagemThread } = require('../waissistente/buscar-ultima-mensagem-da-thread');
+const { enviaMensagemResponses } = require('../waissistente/enviar-mensagem-responses');
 const { criaLogger } = require('../utils/logger');
 const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
 const { acumulaMensagens } = require('../utils/acumular-mensagens');
@@ -46,7 +44,7 @@ async function verificaEEnviaMensagem({
   telefoneContato,
   filtrosAdicionaisContato,
   camposConflito,
-  assistantId,
+  instrucoes,
   nomeThread,
   credenciaisOpenAi,
   supabase,
@@ -109,7 +107,7 @@ async function verificaEEnviaMensagem({
           telefoneContato,
           filtrosAdicionaisContato,
           camposConflito,
-          assistantId,
+          instrucoes,
           nomeThread,
           credenciaisOpenAi,
           supabase,
@@ -188,7 +186,7 @@ async function controleDeThreads({
   telefoneContato,
   filtrosAdicionaisContato,
   camposConflito,
-  assistantId,
+  instrucoes,
   nomeThread,
   credenciaisOpenAi,
   supabase,
@@ -196,118 +194,46 @@ async function controleDeThreads({
 }) {
   const logger = criaLogger(telefoneContato);
   try {
-    let threadId;
-    let lastMessageId;
-    let criouThread;
-
-    if (!openai_thread_id || openai_thread_id == null) {
-      try {
-        logger.add('>>> [WAt] [ETAPA 1: CRIANDO THREAD && ENVIANDO MENSAGEM] ');
-        const mensagemRecebidaPrimeiraThread = await criaThreadeEnviaMensagem({
-          data: {
-            mensagem: mensagem,
-            nome: nomeContato,
-            dadosFornecidos: dadosFornecidos,
-            telefoneContato: telefoneContato,
-            filtrosAdicionais: filtrosAdicionaisContato,
-            camposConflito: camposConflito,
-            apiKey: credenciaisOpenAi.headers.apiKey,
-            assistantId: assistantId,
-            nomeThread: nomeThread,
-            tabela: tabela,
-            supabase: supabase,
-          }
-        });
-
-        logger.add('>>> [WAt] Mensagem enviada com sucesso: ');
-
-        threadId = mensagemRecebidaPrimeiraThread.thread_id;
-        lastMessageId = mensagemRecebidaPrimeiraThread.value?.messageId;
-        criouThread = true;
-      } catch (erro) {
-        logger.error('>>> [WAt] Erro ao criar thread e enviar mensagem:', erro);
-        console.error('[WAt] Erro ao criar thread e enviar mensagem:', erro);
-        return {
-          sucesso: false,
-          mensagem: 'Erro ao criar thread',
-          contatoRetornoIA: null,
-        };
-      }
-    } else {
-      logger.add('>>> [WAt] Thread existente encontrada. Enviando mensagem na thread...');
-      try {
-        logger.add('>>> [WAt] [ETAPA 1: ENVIANDO MENSAGEM EM THREAD EXISTENTE]');
-        const resultado = await enviaMensagemThreadExistente({
-          data: {
-            thread_id: openai_thread_id,
-            user_message: mensagem,
-            nome: nomeContato,
-            dadosFornecidos: dadosFornecidos,
-            telefoneContato,
-            filtrosAdicionaisContato,
-            apiKey: credenciaisOpenAi.headers.apiKey,
-            assistantId: assistantId,
-          },
-        });
-
-        logger.add('>>> [WAt] Mensagem enviada na thread existente com sucesso.');
-        threadId = openai_thread_id;
-        lastMessageId = resultado.messageId;
-        criouThread = false;
-      } catch (erro) {
-        logger.error('Erro ao enviar mensagem na thread existente:', erro);
-        console.error('[WAt]Erro ao enviar mensagem na thread existente:', erro);
-        return {
-          sucesso: false,
-          mensagem: 'Erro ao enviar mensagem',
-          contatoRetornoIA: null,
-        };
-      }
-    }
-
-    try {
-      const data = {
-        threadId,
-        lastMessageId,
+    const result = await enviaMensagemResponses({
+      data: {
+        mensagem,
+        nome: nomeContato,
+        dadosFornecidos,
+        telefoneContato,
+        instrucoes,
+        responseIdAnterior: openai_thread_id,
+        nomeThread,
+        filtrosAdicionais: filtrosAdicionaisContato,
         apiKey: credenciaisOpenAi.headers.apiKey,
-        tabela: tabela,
-        telefoneContato: telefoneContato,
-        filtrosAdicionaisUnicos: filtrosAdicionaisContato,
-        camposConflito: camposConflito,
-        supabase: supabase,
-      };
+        supabase,
+        tabela,
+      },
+    });
 
-      let result = await buscaUltimaMensagemThread({ data });
-
-      if (!result || typeof result !== 'object') {
-        console.warn('[WAt] Resultado inesperado de buscaUltimaMensagemThread', result);
-      }
-
-      result.resumo = result.resumo || '';
-
-      logger.add('>>> [WAt] JSON Resposta Bot:', result);
-
-      const respostaBot = result.respostaBot;
-      if (respostaBot) {
-      } else {
-        logger.add('>>> [WAt] RespostaBot não encontrada no resultado.');
-      }
-      return { sucesso: true, contatoRetornoIA: result }; // Sempre retornar a estrutura padrão
-    } catch (error) {
-      logger.error('>>> [WAt] Erro ao executar buscaUltimaMensagemThread:', error);
-      console.error('[WAt] Erro ao executar buscaUltimaMensagemThread:', error);
+    if (!result || typeof result !== 'object') {
+      console.warn('[WAt] Resultado inesperado de enviaMensagemResponses', result);
       return {
         sucesso: false,
-        mensagem: 'Erro ao buscar última mensagem',
+        mensagem: 'Resposta invalida do modelo',
         contatoRetornoIA: null,
       };
     }
+
+    result.resumo = result.resumo || '';
+
+    logger.add('>>> [WAt] JSON Resposta Bot:', result);
+
+    if (!result.respostaBot) {
+      logger.add('>>> [WAt] RespostaBot não encontrada no resultado.');
+    }
+
+    return { sucesso: true, contatoRetornoIA: result };
   } catch (erro) {
-    logger.error('>>> [WAt] Erro inesperado na função verificaEEnviaMensagem:', erro);
-    console.error('[WAt] Erro inesperado na função verificaEEnviaMensagem:', erro);
+    logger.error('>>> [WAt] Erro inesperado em controleDeThreads:', erro);
+    console.error('[WAt] Erro inesperado em controleDeThreads:', erro);
     return {
       sucesso: false,
-      mensagem: 'Erro inesperado',
+      mensagem: 'Erro ao obter resposta do modelo',
       contatoRetornoIA: null,
     };
   }
