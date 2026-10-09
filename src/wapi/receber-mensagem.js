@@ -11,6 +11,7 @@ const { ehModoTeste, ehTelefoneTeste, mensagemComChave } = require('./resolver-m
  */
 const { consultaOpenAI } = require('../waissistente/consulta-open-ai');
 const { imagemParaTexto } = require('../vision/detector-texto');
+const { descreverImagem } = require('../waissistente/descrever-imagem');
 /**
  * Funções de integração com a WAPI
  */
@@ -140,7 +141,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
     await tratarEnviosGlide(dadosExtraidos, chip);
 
-    const ehAudio = dadosExtraidos.audioMessage ? '[Áudio] ' : '';
+    const ehAudio = (dadosExtraidos.audioDirectPath && dadosExtraidos.audioMediaKey) ? '[Áudio] ' : '';
 
     // === SALVAR HISTÓRICO DE CHAT (sempre com IDENTIFICADOR) ===
     await atualizarJSONChat({
@@ -214,7 +215,7 @@ function extrairDados(json) {
 }
 
 async function interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisOpenAi) {
-  if (dadosExtraidos.audioMessage) {
+  if (dadosExtraidos.audioDirectPath && dadosExtraidos.audioMediaKey) {
     const transcricao = await baixarAudioETranscrever({
       instanceId: credenciaisWAPI.instance_id,
       mediaKey: dadosExtraidos.audioMediaKey,
@@ -222,6 +223,7 @@ async function interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisO
       type: "audio",
       mimetype: dadosExtraidos.audioMimeType,
       tokenWAPI: credenciaisWAPI.token,
+      apiKeyOpenAi: credenciaisOpenAi?.headers?.apiKey,
     });
     return transcricao || null;
   }
@@ -233,7 +235,7 @@ async function interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisO
 
   if (dadosExtraidos.mensagem) return dadosExtraidos.mensagem;
 
-  if (dadosExtraidos.imageUrl) {
+  if (dadosExtraidos.imageDirectPath && dadosExtraidos.imageMediaKey) {
     const urlImagem = await baixarMedia({
       instanceId: credenciaisWAPI.instance_id,
       mediaKey: dadosExtraidos.imageMediaKey,
@@ -243,24 +245,9 @@ async function interpretarMensagem(dadosExtraidos, credenciaisWAPI, credenciaisO
       tokenWAPI: credenciaisWAPI.token,
     });
 
-    const base64 = await urlParaBase64(urlImagem);
-    const buffer = Buffer.from(base64, "base64");
-    const textoDetectado = await imagemParaTexto({ image: buffer });
-    const textoUnico = textoDetectado.map(t => t.description).join("\n");
+    const descricao = await descreverImagem(urlImagem, credenciaisOpenAi?.headers?.apiKey);
 
-    if (textoUnico) {
-      const resposta = await consultaOpenAI({
-        data: {
-          apiKey: credenciaisOpenAi.headers.apiKey,
-          assistant_id: credenciaisOpenAi.headers.assistantId_vision,
-          invoice_message: textoUnico,
-        },
-      });
-
-      return resposta?.invoice?.respostaBot || null;
-    }
-
-    return null;
+    return descricao ? `[Imagem] ${descricao}` : null;
   }
 
   if (dadosExtraidos.liveLocation) {

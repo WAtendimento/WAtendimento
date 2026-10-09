@@ -23,6 +23,7 @@ module.exports = {
   
   // Supabase - Supabase
   insertOuUpsert: require("./supabase/inserir-ou-atualizar-no-supabase").insertOuUpsert,
+  descreverImagem: require("./waissistente/descrever-imagem").descreverImagem,
   buscarNoSupabase: require("./supabase/buscar-no-supabase").buscarNoSupabase,
   atualizarNoSupabase: require("./supabase/atualizar-no-supabase").atualizarNoSupabase,
   

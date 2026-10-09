@@ -3,7 +3,7 @@ const FormData = require("form-data");
 
 const { transcreverAudioPorUrl } = require("../utils/converter-audio-url-para-texto");
 
-async function baixarAudioETranscrever({ instanceId, mediaKey, directPath, type, mimetype, tokenWAPI }) {
+async function baixarAudioETranscrever({ instanceId, mediaKey, directPath, type, mimetype, tokenWAPI, apiKeyOpenAi }) {
   try {
     console.log("[WAt]🔄 Iniciando processo de download e transcrição...");
     console.log("[WAt]🔧 Parâmetros recebidos:", {
@@ -36,7 +36,7 @@ async function baixarAudioETranscrever({ instanceId, mediaKey, directPath, type,
     );
     console.log("[WAt]✅ URL do áudio recebido da WAPI:", wapiResponse.data.fileLink);
 
-    const transcricaoUrl = await transcreverAudioPorUrl(wapiResponse.data.fileLink);
+    const transcricaoUrl = await transcreverAudioPorUrl(wapiResponse.data.fileLink, apiKeyOpenAi);
     console.log("[WAt]📝 Transcrição obtida:", transcricaoUrl);
 
     return transcricaoUrl;
