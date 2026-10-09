@@ -40,6 +40,7 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
   try {
     if (!json || typeof json !== 'object') throw new Error('Entrada inválida: JSON ausente ou mal formatado.');
+    if (json.event === 'webhookDelivery') return { ignorado: true, motivo: 'Webhook de confirmação de entrega.' };
     if (json.fromApi === true) return { ignorado: true, motivo: 'Mensagem enviada pela API.' };
     if (json.isGroup === true) return { ignorado: true, motivo: 'Mensagem de grupo.' };
 
