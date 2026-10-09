@@ -31,6 +31,12 @@ const acumulaMensagens = (telefone) => {
       contexto.mensagens.push(message);
     },
 
+    // Quantas mensagens ja entraram no buffer deste contato.
+    // Usado para encerrar a espera por inatividade em vez de tempo fixo.
+    total() {
+      return contexto.mensagens.length;
+    },
+
     finish() {
       contexto.endTime = formatToBrazilTime(new Date());
 

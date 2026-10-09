@@ -82,7 +82,7 @@ async function verificaEEnviaMensagem({
 
       console.log('[WAt] lockAdquirido = ', lockAdquirido);
 
-      if (lockAdquirido) {
+      if (lockAdquirido?.ok) {
         await atualizarNoSupabase(
           supabase,
           tabela,
@@ -94,9 +94,35 @@ async function verificaEEnviaMensagem({
         logger.add(`>>> [WAt] Criando Buffer com 1ª mensagem: ${mensagem}`);
         // console.log(`[WAt]Criando buffer com a 1a msg:  ${mensagem}`);
         mensagensAcumuladas.add(mensagem);
-        logger.add('>>> [WAt] Delay de 20 segundos para BUFFER');
-        // console.log('[WAt]Delay de 20 segundos para BUFFER');
-        await new Promise((resolve) => setTimeout(resolve, 20000));
+        // Espera por inatividade: encerra 6s depois da ultima mensagem,
+        // com teto de 20s. Quem manda varias seguidas continua agrupado.
+        const ESPERA_MAXIMA = 20000;
+        const ESPERA_APOS_ULTIMA = 6000;
+        const PASSO = 1000;
+
+        logger.add('>>> [WAt] Aguardando o fim das mensagens para o BUFFER');
+
+        let decorrido = 0;
+        let semNovidade = 0;
+        let totalAnterior = mensagensAcumuladas.total();
+
+        while (decorrido < ESPERA_MAXIMA) {
+          await new Promise((resolve) => setTimeout(resolve, PASSO));
+          decorrido += PASSO;
+
+          const totalAgora = mensagensAcumuladas.total();
+
+          if (totalAgora > totalAnterior) {
+            totalAnterior = totalAgora;
+            semNovidade = 0;
+            logger.add('>>> [WAt] Mensagem nova no buffer, reiniciando a contagem');
+          } else {
+            semNovidade += PASSO;
+            if (semNovidade >= ESPERA_APOS_ULTIMA) break;
+          }
+        }
+
+        logger.add(`>>> [WAt] Buffer fechado com ${mensagensAcumuladas.total()} mensagem(ns) após ${decorrido / 1000}s`);
 
         mensagem = mensagensAcumuladas.finish();
         const mensagensBufferizadas = mensagem;
