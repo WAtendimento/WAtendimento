@@ -23,6 +23,7 @@ const { resolverTelefoneFaltante } = require('./resolver-telefone-faltante');
  */
 const { atualizarNoSupabase } = require('../supabase/atualizar-no-supabase');
 const { buscarNoSupabase } = require('../supabase/buscar-no-supabase');
+const { insertOuUpsert } = require('../supabase/inserir-ou-atualizar-no-supabase');
 
 /**
  * Funções de chat
@@ -53,7 +54,8 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
 
     // === RECONHECER TELEFONE FALTANTE ===
     let reconhecidoAgora = false;
-    if (dadosExtraidos.fromMe !== true && !isTelefone) {
+    const pedirTelefoneFaltante = credenciaisSupabase.table_data.pedir_telefone_faltante === true;
+    if (pedirTelefoneFaltante && dadosExtraidos.fromMe !== true && !isTelefone) {
       console.log('[WAt] Identificador não é telefone. Tentando reconhecimento...');
       const resultRecon = await resolverTelefoneFaltante(
         identificador,
@@ -87,15 +89,21 @@ async function receberMensagem(json, credenciaisOpenAi, credenciaisSupabase, sup
     if (reconhecidoAgora && ultimaMensagemSalva) dadosExtraidos.mensagem = ultimaMensagemSalva;
 
     // === SE IDENTIFICADOR É TELEFONE, SALVAR AUTOMATICAMENTE ===
-    if (!telefoneContato && isTelefone) {
-      console.log('[WAt] Identificador é telefone. Salvando automaticamente no Supabase...');
+    if (!telefoneContato && (isTelefone || !pedirTelefoneFaltante)) {
+      console.log('[WAt] Contato novo. Salvando automaticamente no Supabase...');
       telefoneContato = identificador;
-      await atualizarNoSupabase(
+      await insertOuUpsert(
         supabase,
         credenciaisSupabase.table_data.table_contatos,
-        { identificador: ['=', identificador], id_chip: ['=', credenciaisWAPI.id_chip] },
-        { telefone: identificador, reconhecimento_em_andamento: false },
-        false
+        {
+          id_chip: parseInt(credenciaisWAPI.id_chip, 10),
+          identificador,
+          nome_cliente: dadosExtraidos.pushName || 'cliente',
+          telefone: identificador,
+          reconhecimento_em_andamento: false,
+        },
+        true,
+        ['id_chip', 'identificador']
       );
       console.log('[WAt] Telefone salvo automaticamente no Supabase.');
     }

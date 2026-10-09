@@ -123,7 +123,28 @@ async function atualizarNoSupabase(
     const telefoneOriginal = extrairValor(brutoTel);
 
     if (!telefoneRegex.test(telefoneOriginal)) {
-      console.log("[WAt] Valor não parece telefone (provavelmente é um LID). Pulando geração de variações...");
+      console.log("[WAt] Valor não parece telefone (provavelmente é um LID). Atualizando pelo valor exato...");
+
+      const campoVariavel = temFiltroTelefone ? nomeFiltroTelefone : "identificador";
+
+      let consultaLid = supabase
+        .from(tabela)
+        .select("*")
+        .eq(campoVariavel, telefoneOriginal);
+
+      const filtrosRestantesLid = { ...filtros };
+      delete filtrosRestantesLid[campoVariavel];
+      consultaLid = aplicarFiltros(consultaLid, filtrosRestantesLid);
+
+      const { data: registrosLid, error: erroLid } = await consultaLid;
+
+      if (erroLid) {
+        throw new Error(`Erro ao verificar filtros no Supabase: ${erroLid.message}`);
+      }
+
+      if (registrosLid && registrosLid.length > 0) {
+        registroEncontrado = { campoVariavel, variacaoTelefone: telefoneOriginal };
+      }
     } else {
       const variacoes = gerarVariacoesDeTelefone(telefoneOriginal);
 
