@@ -12,9 +12,40 @@ async function mensagemDeEntrada(inputString) {
   return formattedString;
 }
 
-async function mensagemDeSaida(inputString) {
-  if (!inputString || typeof inputString !== "string") {
+// Achata o que o modelo devolver em texto. Ele às vezes responde com array de
+// blocos ou objeto em vez da string esperada, e nesses casos a mensagem se perde.
+function achatarParaTexto(valor) {
+  if (valor === null || valor === undefined) return "";
+  if (typeof valor === "string") return valor;
+  if (typeof valor === "number" || typeof valor === "boolean") return String(valor);
+
+  if (Array.isArray(valor)) {
+    return valor.map(achatarParaTexto).filter(Boolean).join("\n\n");
+  }
+
+  if (typeof valor === "object") {
+    const titulo = valor.titulo || valor.title || valor.header || "";
+    const corpo = valor.conteudo || valor.content || valor.texto || valor.text || valor.respostaBot || "";
+
+    if (titulo || corpo) {
+      return [achatarParaTexto(titulo), achatarParaTexto(corpo)].filter(Boolean).join("\n");
+    }
+
+    return Object.values(valor).map(achatarParaTexto).filter(Boolean).join("\n\n");
+  }
+
+  return "";
+}
+
+async function mensagemDeSaida(entrada) {
+  const inputString = achatarParaTexto(entrada);
+
+  if (!inputString) {
     throw new TypeError("Valor inválido na mensagem de saída: uma string é esperada.");
+  }
+
+  if (typeof entrada !== "string") {
+    console.log("[WAt] Mensagem de saída veio em formato não textual e foi achatada.");
   }
 
   // Remove "+" e aspas duplas, e converte "\\n" para quebras de linha reais
