@@ -211,6 +211,36 @@ async function enviaMensagemResponses({ data }) {
     return chunks.join("\n").trim();
   };
 
+  // Detecta o texto que voltou com acento quebrado e tenta reconverter.
+  // Nao havendo sinal de quebra, devolve o texto como veio.
+  const consertarTexto = (texto) => {
+    const t = String(texto || "");
+
+    // sinal de UTF-8 lido como Latin-1: C3/C2 seguidos de outro byte alto
+    const quebrado = /[\u00c2-\u00c3][\u0080-\u00bf]/.test(t);
+
+    let saida = t;
+
+    if (quebrado) {
+      try {
+        const recuperado = Buffer.from(t, "latin1").toString("utf8");
+        // so aceita quando some o padrao e nao aparece caractere de erro
+        if (!/[\u00c2-\u00c3][\u0080-\u00bf]/.test(recuperado) && !recuperado.includes("\ufffd")) {
+          saida = recuperado;
+          logger.add(">>> [WAt] Texto da resposta reconvertido de latin1 para utf8");
+        }
+      } catch (e) {
+        logger.add(">>> [WAt] Falha ao reconverter o texto: " + e.message);
+      }
+    }
+
+    // o Postgres recusa nulo e substituto solto dentro de json
+    return saida
+      .replace(/\u0000/g, "")
+      .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, "")
+      .replace(/(^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "$1");
+  };
+
   const parseResponse = (responseData) => {
     if (responseData.status === "incomplete") {
       logger.add(
@@ -226,8 +256,26 @@ async function enviaMensagemResponses({ data }) {
       return null;
     }
 
-    const cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
+    // Bug conhecido da OpenAI: o acento volta como \u0000e7 em vez de \u00e7.
+    // Corrigido aqui, enquanto ainda e escape, e so quando vem seguido dos
+    // dois digitos do caractere: \u0000 sozinho e nulo de verdade e fica.
+    const semNulo = rawText.replace(/\\u0000([0-9a-fA-F]{2})/g, "\\u00$1");
+
+    if (semNulo !== rawText) {
+      logger.add(">>> [WAt] Escape quebrado da OpenAI corrigido antes do parse");
+    }
+
+    const cleaned = semNulo.replace(/```json/gi, "").replace(/```/g, "").trim();
     const parsedContent = JSON.parse(cleaned);
+
+    if (parsedContent && typeof parsedContent.respostaBot === "string") {
+      const antes = parsedContent.respostaBot;
+      parsedContent.respostaBot = consertarTexto(antes);
+
+      if (parsedContent.respostaBot !== antes) {
+        logger.add(">>> [WAt] Acentos escapados recuperados no texto da resposta");
+      }
+    }
 
     return { parsedContent, responseId: responseData.id };
   };

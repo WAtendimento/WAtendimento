@@ -30,12 +30,19 @@ async function atualizarJSONChat({ id_chip, numeroContato, connectedPhone, fromM
       }
     }
 
+    // o Postgres recusa \u0000 e substitutos soltos dentro de json, e a
+    // gravacao inteira falha. Limpa antes de montar a mensagem.
+    const limparParaJson = t => String(t ?? '')
+      .replace(/\u0000/g, '')
+      .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, '')
+      .replace(/(^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '$1');
+
     const novaMensagem = {
-      name: nomeContato || '',
+      name: limparParaJson(nomeContato),
       phone: remetente,
       role: fromMe ? 'sales' : 'customer',
       timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().split('.')[0],
-      message: conteudoCorrigido,
+      message: limparParaJson(conteudoCorrigido),
     };
 
     const clientes = await buscarNoSupabase(
