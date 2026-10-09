@@ -35,6 +35,7 @@ async function enviaMensagemResponses({ data }) {
     dadosFornecidos,
     telefoneContato,
     instrucoes,
+    modelo,
     responseIdAnterior,
     nomeThread,
     filtrosAdicionais,
@@ -45,7 +46,7 @@ async function enviaMensagemResponses({ data }) {
 
   const logger = criaLogger(telefoneContato);
 
-  const MODEL = "gpt-4.1-mini";
+  const MODEL = modelo || "gpt-4.1-mini";
   const RESPONSES_URL = "https://api.openai.com/v1/responses";
   const REQUEST_TIMEOUT_MS = 120000;
   const MAX_ATTEMPTS = 5;
@@ -152,7 +153,7 @@ async function enviaMensagemResponses({ data }) {
           content: [
             {
               type: "input_text",
-              text: `mensagem: ${mensagem} nomePessoa: ${nome} dadosFornecidos: ${dadosFornecidos}`,
+              text: `mensagem: ${mensagem} nomePessoa: ${nome} dadosFornecidos: ${dadosFornecidos}\n\nResponda em JSON.`,
             },
           ],
         },
@@ -279,6 +280,7 @@ async function enviaMensagemResponses({ data }) {
           continue;
         }
 
+        console.log('[WAt] erro OpenAI:', JSON.stringify(error.response?.data, null, 2));
         throw error;
       }
     }
