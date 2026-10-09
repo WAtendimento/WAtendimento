@@ -50,10 +50,14 @@ async function enviarMensagemAPI(
 
   const sendSingleMessage = async (msg) => {
     try {
+      // Tempo de digitando proporcional ao tamanho, para nao parecer robo.
+      // Cerca de 25 caracteres por segundo, entre 3 e 15 segundos.
+      const segundosDigitando = Math.min(15, Math.max(3, Math.round(msg.length / 25)));
+
       const payload = {
         phone: number,
         message: msg,
-        delayMessage: 2,
+        delayMessage: segundosDigitando,
       };
 
       const response = await axios.post(url, payload, {

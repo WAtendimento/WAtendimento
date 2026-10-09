@@ -50,6 +50,7 @@ async function verificaEEnviaMensagem({
   credenciaisOpenAi,
   supabase,
   tabela,
+  semBuffer = false,
 }) {
   const logger = criaLogger(telefoneContato);
   const mensagensAcumuladas = acumulaMensagens(telefoneContato);
@@ -96,7 +97,9 @@ async function verificaEEnviaMensagem({
         mensagensAcumuladas.add(mensagem);
         // Espera por inatividade: encerra 6s depois da ultima mensagem,
         // com teto de 20s. Quem manda varias seguidas continua agrupado.
-        const ESPERA_MAXIMA = 20000;
+        // semBuffer: a mensagem ja vem agrupada por uma chamada anterior,
+        // entao nao ha o que esperar. Usado na etapa complementar.
+        const ESPERA_MAXIMA = semBuffer ? 0 : 20000;
         const ESPERA_APOS_ULTIMA = 6000;
         const PASSO = 1000;
 
