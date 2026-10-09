@@ -57,7 +57,8 @@ async function enviaMensagensEmMassa(json, credenciais, supabase, credenciaisSup
       continue;
     }
 
-    const formattedNumber = `55${String(number).replace(/\D/g, '')}`;
+    const numeroLimpo = String(number).replace(/\D/g, '');
+    const formattedNumber = numeroLimpo.startsWith('55') ? numeroLimpo : `55${numeroLimpo}`;
 
     let credenciaisChip = {
       instance_id: credenciais.instance_id, // Altera instance_id para instance_id

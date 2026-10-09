@@ -22,12 +22,20 @@ const { controleExecucao } = require('./controlador-estado-execucao');
 
 
 async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWAPI, credenciaisSupabase, supabase,
-  idMensagem, bot, funcao = 'TODOS_CONTATOS', modoTeste = false
+  idMensagem, bot, funcao = 'TODOS_CONTATOS', modoTeste = false, opcoes = {}
 ) {
-  
-  // TO-DO: Buscar o telefone do responsável pelo banco
-  const telefoneResponsavel = '5581988961959'; // numero de maria
-  const telefonesTeste = ['5581988961959', '558196948615']; // Livia e Maria
+
+  const configs = await lerConfigs(supabase, credenciaisSupabase);
+
+  const telefoneResponsavel = opcoes.telefoneResponsavel || configs.telefone_responsavel || '5581996948615';
+
+  const telefonesTeste = Array.isArray(opcoes.telefonesTeste) && opcoes.telefonesTeste.length
+    ? opcoes.telefonesTeste
+    : (configs.telefones_teste
+        ? configs.telefones_teste.split(',').map((t) => t.trim()).filter(Boolean)
+        : ['5581996948615']);
+
+  envioPausadoNotificado = false;
 
 
   console.log('[WAt] || Envio em massa: Iniciando o processo de envio de mensagens em massa...');
@@ -167,8 +175,8 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
         while (!mensagemEnviada && resultadoConsultaChip.length > 0) {
           if (!controleExecucao.getEstado()) {
             console.log('[WAt] || Envio em massa: 🔴 O envio foi pausado. Interrompendo o envio.');
-            await notificarPausa();
-            
+            await notificarPausa(credenciaisWAPI, telefoneResponsavel);
+
             return { status: 'Pausado pelo usuário' };
           }
           const credenciaisChipAtual = resultadoConsultaChip[indiceCredencial];
@@ -241,7 +249,7 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
           console.log(`[WAt] || Envio em massa: Aguardando Delay para recomeçar os envios`);
           let delay = Math.random() * (20000 - 30000) + 30000;
           console.log(`[WAt] || Envio em massa: Delay iniciado por ${Math.round(delay / 1000)} segundos`);
-          const resultadoDelay = await delayComVerificacao(delay);
+          const resultadoDelay = await delayComVerificacao(delay, 5000, credenciaisWAPI, telefoneResponsavel);
           if (resultadoDelay?.status === 'Pausado durante o delay') {
             return resultadoDelay; // encerra de forma limpa e imediata
           }
@@ -260,6 +268,11 @@ async function processarMensagensEmMassa(mensagemBase, maxResults, credenciaisWA
         console.log('[WAt] || Envio em massa: Limite de sucessos atingido. Interrompendo o envio.');
         break;
       }
+      if (modoTeste) {
+        console.log('[WAt] || Envio em massa: Modo de teste, uma página só.');
+        break;
+      }
+
       // Incrementar o offset para a próxima página
       offset += pageSize;
     }
@@ -320,21 +333,29 @@ const atualizarStatusEnvio = async ({ idCliente, idMensagem, supabase, credencia
 
 
 
-async function notificarPausa() {
-  if (!envioPausadoNotificado) {
-    envioPausadoNotificado = true;
+let envioPausadoNotificado = false;
+
+async function notificarPausa(credenciaisWAPI, telefoneResponsavel) {
+  if (envioPausadoNotificado) return;
+  if (!credenciaisWAPI || !telefoneResponsavel) return;
+
+  envioPausadoNotificado = true;
+
+  try {
     await enviarMensagemAPI(
-      credenciaisWAPI.credenciaisWAPI,
-      '5581996948615',
-      `|| Envio em massa: 🔴 O envio foi pausado. Pode recomeçar.`,
-      'Pause nos envios - enviando para Livia',
+      credenciaisWAPI,
+      telefoneResponsavel,
+      '|| Envio em massa: 🔴 O envio foi pausado. Pode recomeçar.',
+      'Pause nos envios',
       null,
       null // não atualizamos chat pois é uma notificação interna
     );
+  } catch (erro) {
+    console.error('[WAt] || Envio em massa: falha ao notificar pausa:', erro.message);
   }
 }
 
-async function delayComVerificacao(tempoTotalMs, intervaloMs = 5000) {
+async function delayComVerificacao(tempoTotalMs, intervaloMs = 5000, credenciaisWAPI = null, telefoneResponsavel = null) {
   const inicio = Date.now();
 
   while (Date.now() - inicio < tempoTotalMs) {
@@ -342,7 +363,7 @@ async function delayComVerificacao(tempoTotalMs, intervaloMs = 5000) {
     if (!controleExecucao.getEstado()) {
       console.log(`[WAt] || Envio em massa: Serviço pausado durante o delay.`);
 
-      await notificarPausa();
+      await notificarPausa(credenciaisWAPI, telefoneResponsavel);
 
       return { status: 'Pausado durante o delay' };
     }
@@ -352,6 +373,32 @@ async function delayComVerificacao(tempoTotalMs, intervaloMs = 5000) {
   }
 }
 
+
+async function lerConfigs(supabase, credenciaisSupabase) {
+  const tabela = credenciaisSupabase?.table_data?.table_configs;
+  if (!tabela) return {};
+
+  const saida = {};
+
+  for (const chave of ['telefone_responsavel', 'telefones_teste']) {
+    try {
+      const linhas = await buscarNoSupabase(
+        supabase,
+        tabela,
+        { tipo_config: ['=', chave] },
+        ['valor_config'],
+        false
+      );
+
+      const valor = Array.isArray(linhas) ? linhas[0]?.valor_config : null;
+      if (valor) saida[chave] = String(valor).trim();
+    } catch (erro) {
+      console.error(`[WAt] || Envio em massa: falha ao ler config ${chave}:`, erro.message);
+    }
+  }
+
+  return saida;
+}
 
 module.exports = {
   processarMensagensEmMassa
