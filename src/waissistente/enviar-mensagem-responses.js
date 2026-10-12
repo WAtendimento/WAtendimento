@@ -158,13 +158,17 @@ async function enviaMensagemResponses({ data }) {
           ],
         },
       ],
-      temperature: TEMPERATURE,
-      top_p: TOP_P,
       store: true,
       text: {
         format: { type: "json_object" },
       },
     };
+
+    // a serie 5.6 recusa temperature e top_p
+    if (!/^gpt-5\.6/.test(MODEL)) {
+      body.temperature = TEMPERATURE;
+      body.top_p = TOP_P;
+    }
 
     if (chainId) {
       body.previous_response_id = chainId;
