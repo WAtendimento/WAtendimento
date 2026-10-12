@@ -268,6 +268,37 @@ async function enviaMensagemResponses({ data }) {
     const cleaned = semNulo.replace(/```json/gi, "").replace(/```/g, "").trim();
     const parsedContent = JSON.parse(cleaned);
 
+    // o modelo as vezes devolve o JSON inteiro dentro do proprio campo de
+    // texto. O parse de fora aceita, e a pessoa leria o codigo na tela.
+    let aninhados = 0;
+    while (
+      typeof parsedContent?.respostaBot === "string" &&
+      parsedContent.respostaBot.trim().startsWith("{") &&
+      aninhados < 3
+    ) {
+      const bruto = parsedContent.respostaBot.trim();
+      let dentro = null;
+
+      try {
+        dentro = JSON.parse(bruto);
+      } catch {
+        // sobra de aspa ou chave no fim: corta ate o ultimo fecha-chaves
+        const fim = bruto.lastIndexOf("}");
+        if (fim === -1) break;
+        try {
+          dentro = JSON.parse(bruto.slice(0, fim + 1));
+        } catch {
+          break;
+        }
+      }
+
+      if (typeof dentro?.respostaBot !== "string") break;
+
+      Object.assign(parsedContent, dentro);
+      aninhados++;
+      logger.add(">>> [WAt] JSON aninhado no texto da resposta, desfeito");
+    }
+
     if (parsedContent && typeof parsedContent.respostaBot === "string") {
       const antes = parsedContent.respostaBot;
       parsedContent.respostaBot = consertarTexto(antes);
