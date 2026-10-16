@@ -26,6 +26,7 @@ module.exports = {
   descreverImagem: require("./waissistente/descrever-imagem").descreverImagem,
   transcreverAudioPorUrl: require("./utils/converter-audio-url-para-texto").transcreverAudioPorUrl,
   buscarNoSupabase: require("./supabase/buscar-no-supabase").buscarNoSupabase,
+  buscarFuncoesBot: require("./supabase/buscar-funcoes-bot").buscarFuncoesBot,
   atualizarNoSupabase: require("./supabase/atualizar-no-supabase").atualizarNoSupabase,
   
   // OpenAI - OpenAI

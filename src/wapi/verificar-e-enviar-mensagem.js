@@ -50,6 +50,10 @@ async function verificaEEnviaMensagem({
   credenciaisOpenAi,
   supabase,
   tabela,
+  tools,
+  definicoes,
+  supabaseLevops,
+  contextoUsuario,
   semBuffer = false,
 }) {
   const logger = criaLogger(telefoneContato);
@@ -144,6 +148,10 @@ async function verificaEEnviaMensagem({
           credenciaisOpenAi,
           supabase,
           tabela,
+          tools,
+          definicoes,
+          supabaseLevops,
+          contextoUsuario,
         });
 
         logger.add('>>> [WAt] Concluiu envio. Resetando interacao_em_andamento e liberando lock...');
@@ -224,6 +232,10 @@ async function controleDeThreads({
   credenciaisOpenAi,
   supabase,
   tabela,
+  tools,
+  definicoes,
+  supabaseLevops,
+  contextoUsuario,
 }) {
   const logger = criaLogger(telefoneContato);
   try {
@@ -241,6 +253,10 @@ async function controleDeThreads({
         apiKey: credenciaisOpenAi.headers.apiKey,
         supabase,
         tabela,
+        tools,
+        definicoes,
+        supabaseLevops,
+        contextoUsuario,
       },
     });
 

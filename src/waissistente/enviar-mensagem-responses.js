@@ -2,6 +2,7 @@ const axios = require("axios");
 const { buscarNoSupabase } = require("../supabase/buscar-no-supabase");
 const { atualizarNoSupabase } = require("../supabase/atualizar-no-supabase");
 const { criaLogger } = require("../utils/logger");
+const { executarFuncao } = require("./executar-funcao");
 
 /**
  * Envia a mensagem do contato para a Responses API e devolve o JSON do bot.
@@ -42,6 +43,10 @@ async function enviaMensagemResponses({ data }) {
     apiKey,
     supabase,
     tabela,
+    tools,
+    definicoes,
+    supabaseLevops,
+    contextoUsuario,
   } = data;
 
   const logger = criaLogger(telefoneContato);
@@ -143,11 +148,15 @@ async function enviaMensagemResponses({ data }) {
   // Chamada a Responses API
   // ------------------------------------------------------------------
 
-  const createResponse = async (chainId) => {
+  const MAX_VOLTAS_FUNCAO = 3;
+
+  // semTools na ultima volta: sem elas o modelo nao consegue pedir funcao de
+  // novo e escreve a resposta, em vez de a pessoa ficar sem nada
+  const createResponse = async (chainId, entrada, semTools) => {
     const body = {
       model: MODEL,
       instructions: instrucoes,
-      input: [
+      input: entrada || [
         {
           role: "user",
           content: [
@@ -163,6 +172,10 @@ async function enviaMensagemResponses({ data }) {
         format: { type: "json_object" },
       },
     };
+
+    if (!semTools && Array.isArray(tools) && tools.length) {
+      body.tools = tools;
+    }
 
     // a serie 5.6 recusa temperature e top_p
     if (!/^gpt-5\.6/.test(MODEL)) {
@@ -188,6 +201,50 @@ async function enviaMensagemResponses({ data }) {
   // ------------------------------------------------------------------
   // Extracao do texto do array output
   // ------------------------------------------------------------------
+
+  // Executa o que o modelo pediu e devolve o resultado encadeado, ate o
+  // modelo parar de pedir ou o teto de voltas ser atingido.
+  const resolveFuncoes = async (responseData) => {
+    let atual = responseData;
+
+    for (let volta = 0; volta < MAX_VOLTAS_FUNCAO; volta++) {
+      const saida = Array.isArray(atual.output) ? atual.output : [];
+      const chamadas = saida.filter(o => o.type === 'function_call');
+      if (!chamadas.length) return atual;
+
+      const resultados = [];
+
+      for (const chamada of chamadas) {
+        logger.add(`>>> [WAt] Funcao pedida: ${chamada.name} com ${chamada.arguments}`);
+
+        let resultado;
+        try {
+          const argumentos = JSON.parse(chamada.arguments || '{}');
+          resultado = await executarFuncao({
+            nome: chamada.name,
+            argumentos,
+            definicoes,
+            supabaseLevops,
+            contextoUsuario,
+            telefoneContato,
+          });
+        } catch (e) {
+          resultado = { erro: e.message };
+        }
+
+        resultados.push({
+          type: 'function_call_output',
+          call_id: chamada.call_id,
+          output: JSON.stringify(resultado).slice(0, 20000),
+        });
+      }
+
+      const ultima = volta === MAX_VOLTAS_FUNCAO - 1;
+      atual = await createResponse(atual.id, resultados, ultima);
+    }
+
+    return atual;
+  };
 
   const extractOutputText = (responseData) => {
     if (
@@ -330,7 +387,8 @@ async function enviaMensagemResponses({ data }) {
           }`
         );
 
-        const responseData = await createResponse(chainId);
+        const bruta = await createResponse(chainId);
+        const responseData = await resolveFuncoes(bruta);
         const resultado = parseResponse(responseData);
         if (resultado) return resultado;
 
