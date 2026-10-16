@@ -32,8 +32,12 @@ async function buscarFuncoesBot(supabase, tenant, papeisDoUsuario = null, tabela
       return f.papeis.some(p => papeis.includes(p));
     });
 
-    const barradas = (data || []).length - definicoes.length;
-    if (barradas) logger.add(`>>> [WAt] ${barradas} funcao(oes) fora do papel do usuario`);
+    // os nomes, nao a contagem: com so um numero o modelo nao sabe se a
+    // pergunta dele e uma das barradas e acaba chutando
+    const liberadas = new Set(definicoes.map(f => f.nome));
+    const barradas = (data || []).filter(f => !liberadas.has(f.nome)).map(f => f.nome);
+
+    if (barradas.length) logger.add(`>>> [WAt] fora do papel do usuario: ${barradas.join(', ')}`);
 
     const tools = definicoes.map(f => ({
       type: 'function',
@@ -42,7 +46,7 @@ async function buscarFuncoesBot(supabase, tenant, papeisDoUsuario = null, tabela
       parameters: f.parametros,
     }));
 
-    return { tools, definicoes };
+    return { tools, definicoes, barradas };
   } catch (e) {
     logger.add('>>> [WAt] Erro ao buscar funcoes do bot: ' + e.message);
     return { tools: [], definicoes: [] };
