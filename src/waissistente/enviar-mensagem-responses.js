@@ -46,6 +46,7 @@ async function enviaMensagemResponses({ data }) {
     tools,
     definicoes,
     supabaseLevops,
+    tenantLevops,
     contextoUsuario,
   } = data;
 
@@ -225,6 +226,7 @@ async function enviaMensagemResponses({ data }) {
             argumentos,
             definicoes,
             supabaseLevops,
+            tenantLevops,
             contextoUsuario,
             telefoneContato,
           });

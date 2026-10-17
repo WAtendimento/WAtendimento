@@ -27,9 +27,21 @@ async function lerDominio(tenant, filtro, dominio, supabaseLevops, tenantLevops,
     return null;
   }
 
-  const valores = [...new Set(
-    (data || []).map(l => l.dados?.[dominio.campo_valor]).filter(Boolean)
-  )].sort();
+  // com campo_titulo o valor vai acompanhado do nome, para o modelo achar a
+  // sigla quando a pessoa escreve o nome: CAR (Caruaru)
+  const vistos = new Set();
+  const valores = [];
+
+  for (const l of data || []) {
+    const v = l.dados?.[dominio.campo_valor];
+    if (!v || vistos.has(v)) continue;
+    vistos.add(v);
+
+    const titulo = dominio.campo_titulo ? l.dados?.[dominio.campo_titulo] : null;
+    valores.push(titulo ? `${v} (${titulo})` : v);
+  }
+
+  valores.sort();
 
   cacheDominios.set(chave, { valores, quando: Date.now() });
   logger.add(`>>> [WAt] Dominio de ${filtro}: ${valores.length} valores`);
@@ -50,7 +62,7 @@ async function buscarFuncoesBot(supabase, tenant, papeisDoUsuario = null, supaba
   try {
     const { data, error } = await supabase
       .from(tabela)
-      .select('nome, descricao, parametros, view_id, campos, limite, papeis, dominios')
+      .select('nome, descricao, parametros, view_id, campos, limite, papeis, dominios, sugestoes, texto_dominio')
       .eq('tenant', tenant)
       .eq('ativo', true);
 

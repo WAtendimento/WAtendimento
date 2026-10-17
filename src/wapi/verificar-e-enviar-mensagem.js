@@ -53,6 +53,7 @@ async function verificaEEnviaMensagem({
   tools,
   definicoes,
   supabaseLevops,
+  tenantLevops,
   contextoUsuario,
   semBuffer = false,
 }) {
@@ -151,6 +152,7 @@ async function verificaEEnviaMensagem({
           tools,
           definicoes,
           supabaseLevops,
+          tenantLevops,
           contextoUsuario,
         });
 
@@ -235,6 +237,7 @@ async function controleDeThreads({
   tools,
   definicoes,
   supabaseLevops,
+  tenantLevops,
   contextoUsuario,
 }) {
   const logger = criaLogger(telefoneContato);
@@ -256,6 +259,7 @@ async function controleDeThreads({
         tools,
         definicoes,
         supabaseLevops,
+        tenantLevops,
         contextoUsuario,
       },
     });
