@@ -30,18 +30,19 @@ function parecidos(alvo, valores) {
 }
 
 /**
- * Le os valores de um campo do evento, para sugerir quando a busca falha.
+ * Le os valores validos de um filtro, para conferir se o que o modelo
+ * mandou existe de verdade.
  */
-async function lerValores(sugestao, supabaseLevops, tenantLevops) {
-  if (!sugestao?.evento || !sugestao?.campo_valor || !supabaseLevops) return [];
+async function lerValores(dominio, supabaseLevops, tenantLevops) {
+  if (!dominio?.evento || !dominio?.campo_valor || !supabaseLevops) return [];
 
   const { data } = await supabaseLevops
     .from('events')
     .select('dados')
     .eq('tenant_id', tenantLevops)
-    .eq('evento', sugestao.evento);
+    .eq('evento', dominio.evento);
 
-  return [...new Set((data || []).map(l => l.dados?.[sugestao.campo_valor]).filter(Boolean))];
+  return [...new Set((data || []).map(l => l.dados?.[dominio.campo_valor]).filter(Boolean))];
 }
 
 /**
@@ -58,8 +59,24 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
   const logger = criaLogger(telefoneContato);
 
   const def = (definicoes || []).find(f => f.nome === nome);
-  if (!def) return { erro: 'funcao desconhecida' };
-  if (!def.view_id) return { erro: 'funcao sem view' };
+
+  if (!def) {
+    return {
+      tipo_do_erro: 'FUNCAO_DESCONHECIDA',
+      o_que_aconteceu: `Nao existe consulta chamada ${nome}.`,
+      proxima_acao: 'Escolha uma das consultas disponiveis nesta chamada. Nao invente nome de consulta.',
+      nao_pergunte: true,
+    };
+  }
+
+  if (!def.view_id) {
+    return {
+      tipo_do_erro: 'CONSULTA_SEM_VIEW',
+      o_que_aconteceu: `A consulta ${nome} esta cadastrada sem origem de dados.`,
+      proxima_acao: 'Responda: Nao consegui consultar agora.',
+      nao_pergunte: true,
+    };
+  }
 
   // a RPC troca :chave so pelas chaves presentes. Parametro declarado e nao
   // enviado pelo modelo deixa o :nome literal no SQL e quebra a view.
@@ -82,7 +99,13 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
 
     if (error) {
       logger.add(`>>> [WAt] Funcao ${nome} falhou: ${error.message}`);
-      return { erro: error.message };
+
+      return {
+        tipo_do_erro: 'CONSULTA_FALHOU',
+        o_que_aconteceu: error.message,
+        proxima_acao: 'Responda: Nao consegui consultar agora. Nao tente outra funcao para substituir esta.',
+        nao_pergunte: true,
+      };
     }
 
     const linhas = (data || []).map(l => l.dados || l);
@@ -102,20 +125,65 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
     if (recortadas.length > teto) {
       logger.add(`>>> [WAt] Funcao ${nome} devolveu ${recortadas.length} linha(s): pedindo recorte`);
 
+      const filtrosLivres = Object.keys(def.parametros?.properties || {})
+        .filter(p => !(argumentos || {})[p]);
+
       return {
+        tipo_do_erro: 'RESULTADO_GRANDE_DEMAIS',
         total: recortadas.length,
-        linhas: [],
-        precisa_recorte: true,
-        campos_disponiveis: def.campos || [],
-        instrucao: 'Sao muitos registros para listar. Diga o total a pessoa e peca um recorte usando um dos campos disponiveis.',
+        o_que_aconteceu: `A consulta devolveu ${recortadas.length} registros, acima do limite de ${teto}.`,
+        proxima_acao: `Diga o total a pessoa e ofereca um recorte por: ${filtrosLivres.join(', ') || 'nenhum filtro disponivel'}.`,
+        filtros_disponiveis: filtrosLivres,
+        nao_pergunte: false,
       };
     }
 
     logger.add(`>>> [WAt] Funcao ${nome} devolveu ${recortadas.length} linha(s)`);
 
-    // nada encontrado com um filtro de texto preenchido: pode ser erro de
-    // escrita, entao devolve os nomes parecidos em vez de so dizer zero
-    if (recortadas.length === 0 && def.sugestoes) {
+    // vazio com filtro que nao existe no dominio e erro de escrita, nao
+    // ausencia de registro: avisa qual valor nao bate, para ele corrigir.
+    // Com o valor valido, o vazio e a resposta certa e segue adiante.
+    if (recortadas.length === 0 && def.dominios) {
+      for (const [filtro, dominio] of Object.entries(def.dominios)) {
+        const escrito = (argumentos || {})[filtro];
+        if (!escrito) continue;
+
+        const valores = Array.isArray(dominio?.valores)
+          ? dominio.valores
+          : await lerValores(dominio, supabaseLevops, tenantLevops);
+
+        if (!valores.length) continue;
+
+        // o valor pode vir como "CAR (Caruaru)": compara so o codigo
+        const codigos = valores.map(v => String(v).split(' (')[0].toUpperCase());
+        if (codigos.includes(String(escrito).toUpperCase())) continue;
+
+        logger.add(`>>> [WAt] Valor fora do dominio: ${filtro}="${escrito}"`);
+
+        return {
+          tipo_do_erro: 'FILTRO_INVALIDO',
+          filtro,
+          valor_enviado: escrito,
+          o_que_aconteceu: `O valor "${escrito}" nao existe no filtro ${filtro}, por isso a consulta voltou vazia.`,
+          proxima_acao: `Escolha um valor da lista valores_aceitos e consulte de novo. Nao diga a pessoa que nao ha registros.`,
+          valores_aceitos: valores,
+          nao_pergunte: true,
+        };
+      }
+    }
+
+    // vazio de verdade: a pessoa precisa saber que nao ha registro
+    if (recortadas.length === 0) {
+      return {
+        linhas: [],
+        total: 0,
+        o_que_aconteceu: 'A consulta rodou e nao encontrou nenhum registro com esses filtros.',
+        proxima_acao: 'Diga a pessoa que nao ha registros. Nao tente outra funcao nem outro filtro por conta propria.',
+        filtros_usados: argumentos || {},
+      };
+    }
+
+    if (false) {
       for (const [filtro, sugestao] of Object.entries(def.sugestoes)) {
         const escrito = (argumentos || {})[filtro];
         if (!escrito) continue;
@@ -139,7 +207,13 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
     return { linhas: recortadas, total: recortadas.length };
   } catch (e) {
     logger.add(`>>> [WAt] Erro ao executar ${nome}: ${e.message}`);
-    return { erro: e.message };
+
+    return {
+      tipo_do_erro: 'CONSULTA_FALHOU',
+      o_que_aconteceu: e.message,
+      proxima_acao: 'Responda: Nao consegui consultar agora. Nao tente outra funcao para substituir esta.',
+      nao_pergunte: true,
+    };
   }
 }
 
