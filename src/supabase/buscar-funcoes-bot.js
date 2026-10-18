@@ -62,7 +62,7 @@ async function buscarFuncoesBot(supabase, tenant, papeisDoUsuario = null, supaba
   try {
     const { data, error } = await supabase
       .from(tabela)
-      .select('nome, descricao, parametros, view_id, campos, limite, papeis, dominios, sugestoes, texto_dominio')
+      .select('nome, descricao, parametros, view_id, campos, limite, papeis, instrucoes')
       .eq('tenant', tenant)
       .eq('ativo', true);
 
@@ -94,15 +94,18 @@ async function buscarFuncoesBot(supabase, tenant, papeisDoUsuario = null, supaba
     for (const f of definicoes) {
       const parametros = JSON.parse(JSON.stringify(f.parametros || {}));
 
-      for (const [filtro, dominio] of Object.entries(f.dominios || {})) {
+      // dominios e texto_dominio agora moram dentro de instrucoes, junto do
+      // que o cadastro quiser dizer ao modelo
+      const dominios = f.instrucoes?.dominios || {};
+      const modelo = f.instrucoes?.texto_dominio || 'Valores aceitos: {valores}.';
+
+      for (const [filtro, dominio] of Object.entries(dominios)) {
         const prop = parametros?.properties?.[filtro];
         if (!prop) continue;
 
         const valores = await lerDominio(tenant, filtro, dominio, supabaseLevops, tenantLevops, logger);
         if (!valores?.length) continue;
 
-        // a frase vem do banco: cada tenant diz como quer instruir o modelo
-        const modelo = f.texto_dominio || 'Valores aceitos: {valores}.';
         prop.description = (prop.description || ' ') + ' ' +
           modelo.replace('{valores}', valores.join(', '));
       }

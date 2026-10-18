@@ -143,8 +143,8 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
     // vazio com filtro que nao existe no dominio e erro de escrita, nao
     // ausencia de registro: avisa qual valor nao bate, para ele corrigir.
     // Com o valor valido, o vazio e a resposta certa e segue adiante.
-    if (recortadas.length === 0 && def.dominios) {
-      for (const [filtro, dominio] of Object.entries(def.dominios)) {
+    if (recortadas.length === 0 && def.instrucoes?.dominios) {
+      for (const [filtro, dominio] of Object.entries(def.instrucoes.dominios)) {
         const escrito = (argumentos || {})[filtro];
         if (!escrito) continue;
 
@@ -183,28 +183,17 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
       };
     }
 
-    if (false) {
-      for (const [filtro, sugestao] of Object.entries(def.sugestoes)) {
-        const escrito = (argumentos || {})[filtro];
-        if (!escrito) continue;
+    // o que o cadastro quiser dizer ao modelo sobre este resultado vai junto.
+    // dominios e texto_dominio ficam de fora: sao para montar a tool, nao
+    // para a resposta
+    const { dominios: _d, texto_dominio: _t, ...paraOModelo } = def.instrucoes || {};
 
-        const valores = await lerValores(sugestao, supabaseLevops, tenantLevops);
-        const achados = parecidos(escrito, valores);
-        if (!achados.length) continue;
-
-        logger.add(`>>> [WAt] Sugestoes para ${filtro}="${escrito}": ${achados.join(', ')}`);
-
-        return {
-          linhas: [],
-          total: 0,
-          nao_encontrado: escrito,
-          sugestoes: achados,
-          instrucao: `Nada foi encontrado para "${escrito}". Pergunte a pessoa se ela quis dizer um dos nomes da lista sugestoes, e consulte de novo com o nome escolhido.`,
-        };
-      }
-    }
-
-    return { linhas: recortadas, total: recortadas.length };
+    return {
+      linhas: recortadas,
+      total: recortadas.length,
+      filtros_usados: argumentos || {},
+      ...paraOModelo,
+    };
   } catch (e) {
     logger.add(`>>> [WAt] Erro ao executar ${nome}: ${e.message}`);
 
