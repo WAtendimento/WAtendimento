@@ -110,10 +110,17 @@ async function buscarFuncoesBot(supabase, tenant, papeisDoUsuario = null, supaba
           modelo.replace('{valores}', valores.join(', '));
       }
 
+      // o catalogo precisa chegar antes da primeira chamada: SQL que conta
+      // a entidade errada executa sem erro, entao o erro de execucao nao
+      // corrige isso
+      const catalogo = f.instrucoes?.catalogo;
+
       tools.push({
         type: 'function',
         name: f.nome,
-        description: f.descricao,
+        description: catalogo
+          ? f.descricao + '\n\n' + (typeof catalogo === 'string' ? catalogo : JSON.stringify(catalogo, null, 1))
+          : f.descricao,
         parameters: parametros,
       });
     }

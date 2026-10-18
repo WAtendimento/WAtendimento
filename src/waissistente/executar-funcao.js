@@ -55,6 +55,25 @@ async function lerValores(dominio, supabaseLevops, tenantLevops) {
  * A view ja filtra por tenant_id dentro do SQL. O recorte de campos e o
  * limite vem do cadastro da funcao, nao do modelo.
  */
+
+/**
+ * Grava a chamada no log, com sucesso ou falha.
+ *
+ * Numero que o modelo apresenta precisa ter execucao por tras: sem o
+ * registro nao ha como conferir depois o que foi consultado de verdade.
+ *
+ * Falha de gravacao nunca derruba a consulta, e vai em requisicao propria,
+ * entao erro na consulta nao leva o registro junto.
+ */
+async function registrar(supabaseLevops, linha) {
+  try {
+    const { error } = await supabaseLevops.from('log_consultas_bot').insert(linha);
+    if (error) console.error('[WAt] log_consultas_bot falhou:', error.message);
+  } catch (e) {
+    console.error('[WAt] log_consultas_bot falhou:', e.message);
+  }
+}
+
 async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, tenantLevops, contextoUsuario, telefoneContato }) {
   const logger = criaLogger(telefoneContato);
 
@@ -69,7 +88,10 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
     };
   }
 
-  if (!def.view_id) {
+  // duas origens: view cadastrada, ou RPC que recebe o SQL do modelo
+  const rpcLivre = def.instrucoes?.rpc;
+
+  if (!def.view_id && !rpcLivre) {
     return {
       tipo_do_erro: 'CONSULTA_SEM_VIEW',
       o_que_aconteceu: `A consulta ${nome} esta cadastrada sem origem de dados.`,
@@ -91,14 +113,51 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
     case_id_usuario: contextoUsuario?.caseId || null,
   };
 
+  const chamadaId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const comecou = Date.now();
+
   try {
-    const { data, error } = await supabaseLevops.rpc('executar_view', {
-      p_id: def.view_id,
-      p_params: params,
-    });
+    const { data, error } = rpcLivre
+      ? await supabaseLevops.rpc(rpcLivre, {
+          p_sql: (argumentos || {}).sql || '',
+          p_tenant: tenantLevops,
+        })
+      : await supabaseLevops.rpc('executar_view', {
+          p_id: def.view_id,
+          p_params: params,
+        });
 
     if (error) {
       logger.add(`>>> [WAt] Funcao ${nome} falhou: ${error.message}`);
+
+      await registrar(supabaseLevops, {
+        tenant: tenantLevops,
+        sessao: telefoneContato || null,
+        chamada_id: chamadaId,
+        funcao: nome,
+        parametros: argumentos || {},
+        sql_executado: rpcLivre ? ((argumentos || {}).sql || null) : null,
+        sucesso: false,
+        erro: error.message,
+        ms: Date.now() - comecou,
+      });
+
+      // na consulta livre o erro quase sempre e do SQL que ele mesmo
+      // escreveu: devolve a mensagem do banco para ele corrigir e repetir
+      if (rpcLivre) {
+        const m = error.message || '';
+        const tempo = /timeout|canceling statement/i.test(m);
+
+        return {
+          tipo_do_erro: 'SQL_FALHOU',
+          o_que_aconteceu: m,
+          sql_enviado: (argumentos || {}).sql || '',
+          proxima_acao: tempo
+            ? 'A consulta demorou demais. Reduza o periodo, agrupe com count ou group by em vez de listar, ou tire um join. Escreva outro SQL e consulte de novo.'
+            : 'Corrija o SQL conforme a mensagem do banco e consulte de novo. Nao desista nem responda que nao conseguiu antes de tentar outra vez.',
+          nao_pergunte: true,
+        };
+      }
 
       return {
         tipo_do_erro: 'CONSULTA_FALHOU',
@@ -118,25 +177,20 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
         })
       : linhas;
 
-    const teto = def.limite || 30;
-
-    // lista grande demais para caber na resposta: em vez de cortar e mentir
-    // o total, devolve a contagem e pede o recorte a pessoa
-    if (recortadas.length > teto) {
-      logger.add(`>>> [WAt] Funcao ${nome} devolveu ${recortadas.length} linha(s): pedindo recorte`);
-
-      const filtrosLivres = Object.keys(def.parametros?.properties || {})
-        .filter(p => !(argumentos || {})[p]);
-
-      return {
-        tipo_do_erro: 'RESULTADO_GRANDE_DEMAIS',
-        total: recortadas.length,
-        o_que_aconteceu: `A consulta devolveu ${recortadas.length} registros, acima do limite de ${teto}.`,
-        proxima_acao: `Diga o total a pessoa e ofereca um recorte por: ${filtrosLivres.join(', ') || 'nenhum filtro disponivel'}.`,
-        filtros_disponiveis: filtrosLivres,
-        nao_pergunte: false,
-      };
-    }
+    // o que limita a consulta e o custo no banco, medido pelo timeout, nao
+    // uma contagem de linhas: cortar por quantidade barrava ranking
+    // legitimo e obrigava a pedir recorte que a pessoa nao queria dar
+    await registrar(supabaseLevops, {
+      tenant: tenantLevops,
+      sessao: telefoneContato || null,
+      chamada_id: chamadaId,
+      funcao: nome,
+      parametros: argumentos || {},
+      sql_executado: rpcLivre ? ((argumentos || {}).sql || null) : null,
+      sucesso: true,
+      linhas: recortadas.length,
+      ms: Date.now() - comecou,
+    });
 
     logger.add(`>>> [WAt] Funcao ${nome} devolveu ${recortadas.length} linha(s)`);
 
@@ -186,7 +240,7 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
     // o que o cadastro quiser dizer ao modelo sobre este resultado vai junto.
     // dominios e texto_dominio ficam de fora: sao para montar a tool, nao
     // para a resposta
-    const { dominios: _d, texto_dominio: _t, ...paraOModelo } = def.instrucoes || {};
+    const { dominios: _d, texto_dominio: _t, rpc: _r, catalogo: _c, ...paraOModelo } = def.instrucoes || {};
 
     return {
       linhas: recortadas,
@@ -196,6 +250,18 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
     };
   } catch (e) {
     logger.add(`>>> [WAt] Erro ao executar ${nome}: ${e.message}`);
+
+    await registrar(supabaseLevops, {
+      tenant: tenantLevops,
+      sessao: telefoneContato || null,
+      chamada_id: chamadaId,
+      funcao: nome,
+      parametros: argumentos || {},
+      sql_executado: rpcLivre ? ((argumentos || {}).sql || null) : null,
+      sucesso: false,
+      erro: e.message,
+      ms: Date.now() - comecou,
+    });
 
     return {
       tipo_do_erro: 'CONSULTA_FALHOU',
