@@ -122,4 +122,35 @@ async function relatarErro({
   return { caseId, gravou, avisou };
 }
 
-module.exports = { relatarErro };
+/**
+ * Le o bloco de relato e a declaracao do campo, que ficam numa linha
+ * compartilhada da tabela prompts, para todos os tenants.
+ *
+ * Fica na tabela, e nao no codigo, porque o texto muda com frequencia:
+ * editar no banco vale na hora para todos os clientes, sem deploy.
+ *
+ * Devolve textos vazios quando a linha nao existe ou a leitura falha: o bot
+ * segue funcionando, so que sem o relato.
+ */
+async function buscarInstrucoesRelato(supabase, tabela = 'prompts') {
+  try {
+    const { data, error } = await supabase
+      .from(tabela)
+      .select('prompt, formato_resposta')
+      .eq('tenant', 'padrao')
+      .eq('nome_assistente', 'relatar_erro')
+      .eq('ativo', true)
+      .limit(1);
+
+    if (error || !data?.length) return { prompt: '', formato: '' };
+
+    return {
+      prompt: data[0].prompt || '',
+      formato: data[0].formato_resposta || '',
+    };
+  } catch (e) {
+    return { prompt: '', formato: '' };
+  }
+}
+
+module.exports = { relatarErro, buscarInstrucoesRelato };

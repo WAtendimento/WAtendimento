@@ -28,6 +28,7 @@ module.exports = {
   buscarNoSupabase: require("./supabase/buscar-no-supabase").buscarNoSupabase,
   buscarFuncoesBot: require("./supabase/buscar-funcoes-bot").buscarFuncoesBot,
   relatarErro: require("./waissistente/relatar-erro").relatarErro,
+  buscarInstrucoesRelato: require("./waissistente/relatar-erro").buscarInstrucoesRelato,
   atualizarNoSupabase: require("./supabase/atualizar-no-supabase").atualizarNoSupabase,
   
   // OpenAI - OpenAI
