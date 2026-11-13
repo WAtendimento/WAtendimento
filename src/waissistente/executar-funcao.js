@@ -121,6 +121,8 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
       ? await supabaseLevops.rpc(rpcLivre, {
           p_sql: (argumentos || {}).sql || '',
           p_tenant: tenantLevops,
+          // a RPC esconde os eventos que o papel de quem pergunta nao pode ver
+          p_papeis: contextoUsuario?.papeis || null,
         })
       : await supabaseLevops.rpc('executar_view', {
           p_id: def.view_id,
