@@ -88,6 +88,11 @@ async function executarFuncao({ nome, argumentos, definicoes, supabaseLevops, te
     };
   }
 
+  // executor proprio do cliente, preso na definicao pelo integra-bot dele
+  if (typeof def.executar === 'function') {
+    return def.executar({ def, argumentos, supabaseLevops, tenantLevops, contextoUsuario, telefoneContato });
+  }
+
   // duas origens: view cadastrada, ou RPC que recebe o SQL do modelo
   const rpcLivre = def.instrucoes?.rpc;
 
