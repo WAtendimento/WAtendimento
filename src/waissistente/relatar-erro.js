@@ -50,6 +50,7 @@ async function relatarErro({
   const caseId = gerarCaseId(tenant);
   const email = usuario?.email || 'nao identificado';
   const nome = usuario?.nome || '';
+  const telefone = usuario?.telefone || '';
 
   // grava primeiro: o aviso pode falhar, o registro nao pode se perder
   let gravou = false;
@@ -64,6 +65,7 @@ async function relatarErro({
         descricao: String(descricao).trim(),
         responsavel: email,
         nomeResponsavel: nome,
+        telefoneResponsavel: telefone,
         origem: canal || 'bot',
         sessao: String(sessao || ''),
         data: new Date().toISOString(),
@@ -91,6 +93,7 @@ async function relatarErro({
     '*Relato de erro no bot' + (nomeCliente ? ' da ' + nomeCliente : '') + '*\n' +
     String(descricao).trim() +
     '\n\nQuem relatou: ' + (nome ? nome + ' (' + email + ')' : email) +
+    (telefone ? '\nTelefone: ' + telefone : '') +
     '\nOnde: ' + (canal || 'bot') +
     '\nRegistro: ' + (gravou ? caseId : 'FALHOU AO GRAVAR') +
     '\nSessao: ' + String(sessao || '');
